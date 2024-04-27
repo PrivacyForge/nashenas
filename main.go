@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"log"
 	"strings"
@@ -34,8 +35,19 @@ type User struct {
 	PublicKey string `gorm:"size: 255"`
 }
 
+type Message struct {
+	gorm.Model
+	ID      int64  `gorm:"primaryKey"`
+	Message string `gorm:"size: 255"`
+	UserId  int64  `gorm:"size: 255"`
+}
+
 type SetKeyBody struct {
 	PublicKey string `json:"public_key"`
+}
+
+type SendMessageBody struct {
+	Message string `json:"message"`
 }
 
 func main() {
@@ -57,6 +69,7 @@ func main() {
 
 	db.AutoMigrate(&OTP{})
 	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Message{})
 
 	bot.Debug = true
 
@@ -66,6 +79,48 @@ func main() {
 	u.Timeout = 60
 
 	updates := bot.GetUpdatesChan(u)
+
+	http.HandleFunc("GET /get-messages", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+
+		var result []Message
+		db.Where("user_id = ?", id).Find(&result)
+
+		fmt.Println(result)
+
+	})
+
+	http.HandleFunc("POST /send-message", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		body, _ := io.ReadAll(r.Body)
+		// message
+
+		var resbody SendMessageBody
+		json.Unmarshal(body, &resbody)
+
+		userid, _ := strconv.ParseInt(id, 10, 64)
+		db.Create(&Message{Message: resbody.Message, UserId: userid})
+
+		io.WriteString(w, "The message Sent.")
+	})
+
+	http.HandleFunc("GET /get-profile", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+
+		var result User
+		db.Where("id = ?", id).Find(&result)
+
+		if result.ID == 0 {
+			w.WriteHeader(400)
+			io.WriteString(w, "Not found.")
+			return
+		}
+
+		content, _ := json.Marshal(result)
+
+		io.WriteString(w, string(content))
+
+	})
 
 	http.HandleFunc("POST /set-key", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
