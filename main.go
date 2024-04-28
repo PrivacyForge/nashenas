@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"log"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
@@ -50,11 +52,26 @@ type SendMessageBody struct {
 	Message string `json:"message"`
 }
 
+func ValidateToken(tokenString string, secret []byte) float64 {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	claims, _ := token.Claims.(jwt.MapClaims)
+
+	return claims["userid"].(float64)
+
+}
+
 func main() {
 	godotenv.Load(".dev.env")
 	PORT := os.Getenv("PORT")
 	DB_PATH := os.Getenv("DB_PATH")
 	BOT_TOKEN := os.Getenv("BOT_TOKEN")
+	SECRET := os.Getenv("SECRET")
 
 	bot, err := tgbotapi.NewBotAPI(BOT_TOKEN)
 	if err != nil {
@@ -81,19 +98,21 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	http.HandleFunc("GET /get-messages", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+		token := r.Header.Get("Authorization")
+
+		id := ValidateToken(token, []byte(SECRET))
 
 		var result []Message
-		db.Where("user_id = ?", id).Find(&result)
+		db.Where("user_id = ?", int64(id)).Find(&result)
 
-		fmt.Println(result)
+		content, _ := json.Marshal(result)
 
+		io.WriteString(w, string(content))
 	})
 
 	http.HandleFunc("POST /send-message", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		body, _ := io.ReadAll(r.Body)
-		// message
 
 		var resbody SendMessageBody
 		json.Unmarshal(body, &resbody)
@@ -151,13 +170,26 @@ func main() {
 		var result OTP
 		db.Where("code = ?", code).Find(&result)
 
-		if result.ID != 0 {
-			db.Create(&User{Userid: result.Userid, Username: result.Username, PublicKey: ""})
-			io.WriteString(w, "The user has been generated.")
-		} else {
-			w.WriteHeader(400)
+		if result.ID == 0 {
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "Code is invalid")
+
+			return
 		}
+
+		var newUser = User{Userid: result.Userid, Username: result.Username, PublicKey: ""}
+		db.Create(&newUser)
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"userid": newUser.ID,
+			"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		})
+
+		tokenString, err := token.SignedString([]byte(SECRET))
+
+		fmt.Println(tokenString, err)
+
+		io.WriteString(w, tokenString)
 
 	})
 
