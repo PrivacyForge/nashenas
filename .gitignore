@@ -1,4 +1,5 @@
-.dev.env
+server/.dev.env
+server/*.db
+node_modules
 .env
 .prod.env
-*.db

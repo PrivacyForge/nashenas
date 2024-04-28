@@ -129,7 +129,7 @@ func main() {
 		var result User
 		db.Where("id = ?", id).Find(&result)
 
-		if result.ID == 0 {
+		if result.ID == 0	 {
 			w.WriteHeader(400)
 			io.WriteString(w, "Not found.")
 			return
