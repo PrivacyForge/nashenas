@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
+/* html {
   font-family: Roboto, sans-serif;
+} */
+html {
+  @apply bg-[#f7f7f7] text-black;
 }
