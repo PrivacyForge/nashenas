@@ -4,7 +4,7 @@
   <div class="flex justify-center items-center h-screen w-screen">
     <div>
       <a
-        class="flex bg-[#119af5] text-white font-semibold py-6 px-10 rounded-lg text-lg"
+        class="flex bg-[#119af5] text-white font-semibold py-4 px-8 rounded-lg text-lg"
         href="https://telegram.me/fihawdhaw02bot?start=otp"
         target="_blank"
       >

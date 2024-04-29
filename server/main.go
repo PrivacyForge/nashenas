@@ -129,7 +129,7 @@ func main() {
 		var result User
 		db.Where("id = ?", id).Find(&result)
 
-		if result.ID == 0	 {
+		if result.ID == 0 {
 			w.WriteHeader(400)
 			io.WriteString(w, "Not found.")
 			return
@@ -212,6 +212,16 @@ func main() {
 					})
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, code)
 					msg.ReplyToMessageID = update.Message.MessageID
+
+					url := "http://192.168.1.1:5173/confirm/" + code
+
+					fmt.Println(url)
+
+					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonURL("Confirm", url),
+						),
+					)
 
 					bot.Send(msg)
 				} else {
