@@ -1,12 +1,31 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import forge from 'node-forge'
+
+const props = defineProps<{
+  text: string
+  time: string
+}>()
+
+const vDecrypt = {
+  mounted: (el: HTMLParagraphElement) => {
+    const publicKey = localStorage.getItem('public_key')
+    const privateKey = localStorage.getItem('private_key')
+
+    // const encryptedMsg = forge.pki
+    //   .publicKeyFromPem(publicKey!)
+    //   .encrypt(el.innerText)
+
+    const decrypted = forge.pki
+      .privateKeyFromPem(privateKey!)
+      .decrypt(forge.util.hexToBytes(el.innerText))
+
+    el.innerText = decrypted
+  },
+}
+</script>
 <template>
   <div class="flex flex-col bg-[#ffffff] p-5 rounded-lg">
-    <p class="mb-1 text-gray-400 text-end">7 minutes ago</p>
-    <p dir="auto">
-      Random Long Message. In publishing and graphic design, Lorem ipsum is a
-      placeholder text commonly used to demonstrate the visual form of a
-      document or a typeface without relying on meaningful content. Lorem ipsum
-      may be used as a placeholder before the final copy is available. Wikipedia
-    </p>
+    <p class="mb-2 text-gray-400 text-end">{{ time }}</p>
+    <p class="break-words" dir="auto" v-decrypt>{{ text }}</p>
   </div>
 </template>

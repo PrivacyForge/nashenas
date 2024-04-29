@@ -4,11 +4,12 @@
   <div class="flex justify-center items-center h-screen w-screen">
     <div>
       <a
-        class="bg-[#119af5] text-white font-semibold py-6 px-12 rounded-lg text-sm"
+        class="flex bg-[#119af5] text-white font-semibold py-6 px-10 rounded-lg text-lg"
         href="https://telegram.me/fihawdhaw02bot?start=otp"
         target="_blank"
       >
         Start Our Telegram Bot
+        <img class="pl-2" src="@/assets/telegram.svg" alt="">
       </a>
     </div>
   </div>
