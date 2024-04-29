@@ -12,11 +12,11 @@ const router = createRouter({
       name: 'auth',
       component: () => import('@/views/Auth.vue'),
     },
-    // {
-    //   path: '/@:username',
-    //   name: 'profile',
-    //   component: () => import('@/views/Profile.vue'),
-    // },
+    {
+      path: '/@:username',
+      name: 'profile',
+      component: () => import('@/views/Profile.vue'),
+    },
     {
       path: '/',
       component: () => import('@/layouts/main.vue'),

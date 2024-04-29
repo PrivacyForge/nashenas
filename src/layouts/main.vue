@@ -50,10 +50,12 @@ function exportKeys() {
 </script>
 
 <template>
-  <div class="">
+  <div>
     <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg">
       <img src="@/assets/lock.svg" alt="" onclick="modal_1.showModal()" />
-      <RouterLink to="" class="text-[#119af5] test- font-semibold text-end"
+      <RouterLink
+        :to="{ name: 'profile', params: { username: 'yasha' } }"
+        class="text-[#119af5] test- font-semibold text-end"
         >My Profile</RouterLink
       >
     </nav>

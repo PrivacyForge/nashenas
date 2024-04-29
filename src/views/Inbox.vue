@@ -14,6 +14,7 @@ messages.value = JSON.parse(localStorage.getItem('messages')!)
       :key="i"
       :text="m.text"
       :time="m.time"
+      :mark="i === 2"
     />
   </div>
 </template>
