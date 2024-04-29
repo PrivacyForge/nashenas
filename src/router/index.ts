@@ -13,6 +13,11 @@ const router = createRouter({
       component: () => import('@/views/Auth.vue'),
     },
     {
+      path: '/setup',
+      name: 'confirm',
+      component: () => import('@/views/Setup.vue'),
+    },
+    {
       path: '/@:username',
       name: 'profile',
       component: () => import('@/views/Profile.vue'),

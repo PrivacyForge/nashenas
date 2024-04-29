@@ -213,7 +213,7 @@ func main() {
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, code)
 					msg.ReplyToMessageID = update.Message.MessageID
 
-					url := "http://192.168.1.1:5173/confirm/" + code
+					url := "http://192.168.152.239:5173/confirm/" + code
 
 					fmt.Println(url)
 

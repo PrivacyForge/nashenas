@@ -9,12 +9,15 @@ messages.value = JSON.parse(localStorage.getItem('messages')!)
 
 <template>
   <div class="grid grid-cols-1 gap-y-3 m-4">
-    <Message
-      v-for="(m, i) in messages"
-      :key="i"
-      :text="m.text"
-      :time="m.time"
-      :mark="false"
-    />
+    <template v-if="messages.length">
+      <Message
+        v-for="(m, i) in messages"
+        :key="i"
+        :text="m.text"
+        :time="m.time"
+        :mark="false"
+      />
+    </template>
+    <p class="text-center text-gray-400" v-else>You have no message :)</p>
   </div>
 </template>

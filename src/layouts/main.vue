@@ -56,7 +56,7 @@ function exportKeys() {
       <RouterLink
         :to="{ name: 'profile', params: { username: 'yasha' } }"
         class="text-[#119af5] test- font-semibold text-end"
-        >My Profile</RouterLink
+        >My Link</RouterLink
       >
     </nav>
     <hr class="my-1 mx-4" />
