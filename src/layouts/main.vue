@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import { RouterView } from 'vue-router'
 import forge from 'node-forge'
+
 import CopyText from '@/components/CopyText.vue'
+import SettingsIcon from '@/components/icons/Settings.vue'
 
 const myLink = ref(`http://localhost:5173/@yasha`)
 
@@ -56,7 +58,7 @@ function exportKeys() {
   <div>
     <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg shadow-sm">
       <div class="grid grid-cols-2 gap-x-3">
-        <img src="@/assets/settings.svg" alt="" onclick="modal_1.showModal()" />
+        <SettingsIcon size="24" color="black" onclick="modal_1.showModal()" />
       </div>
       <CopyText
         text="My Link"

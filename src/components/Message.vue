@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import forge from 'node-forge'
 
-const props = defineProps<{
+import ReplyIcon from '@/components/icons/Reply.vue'
+
+defineProps<{
   text: string
   time: string
   mark: boolean
@@ -36,7 +38,7 @@ const vDecrypt = {
     <p class="text-gray-400 text-end">{{ time }}</p>
     <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
     <div class="flex justify-end text-gray-400 text-end">
-      <span class="mr-1">Reply</span> <img src="@/assets/corner-up-left.svg" alt="" />
+      <span class="mr-1">Reply</span> <ReplyIcon size="20" color="#9CA38F" />
     </div>
   </div>
 </template>
