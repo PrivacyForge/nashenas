@@ -23,17 +23,20 @@ const vDecrypt = {
 
       el.innerText = decrypted
     } catch (error) {
-      el.innerText = "Decryption Error."
+      el.innerText = 'Decryption Error.'
     }
   },
 }
 </script>
 <template>
   <div
-    class="flex flex-col bg-[#ffffff] p-5 rounded-lg"
+    class="flex flex-col bg-[#ffffff] p-4 rounded-lg shadow-sm"
     :class="mark && ['border-2 border-[#119af5]']"
   >
-    <p class="mb-2 text-gray-400 text-end">{{ time }}</p>
-    <p class="break-words" dir="auto" v-decrypt>{{ text }}</p>
+    <p class="text-gray-400 text-end">{{ time }}</p>
+    <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
+    <div class="flex justify-end text-gray-400 text-end">
+      <span class="mr-1">Reply</span> <img src="@/assets/corner-up-left.svg" alt="" />
+    </div>
   </div>
 </template>

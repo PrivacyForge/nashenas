@@ -3,3 +3,4 @@ server/*.db
 node_modules
 .env
 .prod.env
+.dev.env

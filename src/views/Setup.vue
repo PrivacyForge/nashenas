@@ -2,15 +2,19 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
+import axios from '@/plugins/axios'
 
 const route = useRoute()
+
+const username = ref('')
+const usernameErr = ref('')
 
 const loading = ref(false)
 const FileInput = ref<any>()
 
 const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
->('key-question')
+>('set-username')
 
 async function generateKeyPair() {
   const keyPair = await forge.pki.rsa.generateKeyPair({
@@ -27,10 +31,15 @@ async function generateKeyPair() {
   loading.value = true
 
   setTimeout(() => {
-    loading.value = false
+    axios
+      .post('/set-key', { public_key: publicKey })
+      .then(() => {
+        state.value = 'key-generation'
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }, 2000)
-
-  state.value = 'key-generation'
 }
 
 function exportKeys() {
@@ -61,9 +70,22 @@ function importKeys(event: Event) {
     const publicKey = rawData.split('divide')[1].slice(1) // send to server
 
     localStorage.setItem('private_key', privateKey)
+    axios.post('/set-key', { public_key: publicKey }).then(() => {
+      state.value = 'key-upload'
+    })
   }
   reader.readAsText(file)
-  state.value = 'key-upload'
+}
+
+function usernameSubmit() {
+  axios
+    .post('/set-username', { username: username.value })
+    .then(() => {
+      state.value = 'key-question'
+    })
+    .catch((error) => {
+      usernameErr.value = error.response.data
+    })
 }
 </script>
 <template>
@@ -77,19 +99,22 @@ function importKeys(event: Event) {
         <div class="relative">
           <label class="font-semibold"> Choose a stylish username: </label>
           <input
+            v-model="username"
             type="text"
             class="input input-bordered w-full focus:outline-[#119af5] outline-[#119af5] mt-3 pl-6"
             placeholder="username"
           />
           <span class="absolute left-2 top-12">@</span>
         </div>
+        <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
         <button
           class="btn mt-4 bg-[#119af5] text-white"
-          @click="state = 'key-question'"
+          @click="usernameSubmit()"
         >
           Next
         </button>
       </template>
+
       <template v-if="state === 'key-question'">
         <p class="pb-5 pt-3 text-center">Do you have any public/private key?</p>
         <div class="grid grid-cols-1 gap-y-2">
@@ -118,14 +143,24 @@ function importKeys(event: Event) {
         <p class="text-center text-green-600 mt-2">
           Your keys have been set successfully.
         </p>
-        <button class="btn mt-6 bg-[#119af5] text-white">Continue</button>
+        <button
+          class="btn mt-6 bg-[#119af5] text-white"
+          @click="$router.push({ name: 'inbox' })"
+        >
+          Continue
+        </button>
       </template>
 
       <template v-if="state === 'key-generation'">
         <p class="text-center text-green-600 mt-2">
           Your keys have been generated.
         </p>
-        <button class="btn mt-6 bg-[#119af5] text-white">Continue</button>
+        <button
+          class="btn mt-6 bg-[#119af5] text-white"
+          @click="$router.push({ name: 'inbox' })"
+        >
+          Continue
+        </button>
         <button
           class="text-[#119af5] pt-4 pb-2 rounded-md font-semibold"
           @click="exportKeys"

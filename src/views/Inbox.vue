@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import Message from '@/components/Message.vue'
+import axios from '@/plugins/axios'
 import { ref } from 'vue'
 
-const messages = ref<any>()
+const messages = ref<any[]>([])
 
-messages.value = JSON.parse(localStorage.getItem('messages')!)
+axios.get('/get-messages').then((response) => {
+  messages.value = response.data
+})
 </script>
 
 <template>
@@ -13,8 +16,8 @@ messages.value = JSON.parse(localStorage.getItem('messages')!)
       <Message
         v-for="(m, i) in messages"
         :key="i"
-        :text="m.text"
-        :time="m.time"
+        :text="m.Message"
+        :time="m.Time"
         :mark="false"
       />
     </template>

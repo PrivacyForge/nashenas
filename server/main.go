@@ -39,17 +39,10 @@ type User struct {
 
 type Message struct {
 	gorm.Model
-	ID      int64  `gorm:"primaryKey"`
-	Message string `gorm:"size: 255"`
-	UserId  int64  `gorm:"size: 255"`
-}
-
-type SetKeyBody struct {
-	PublicKey string `json:"public_key"`
-}
-
-type SendMessageBody struct {
-	Message string `json:"message"`
+	ID      int64     `gorm:"primaryKey"`
+	Message string    `gorm:"size: 255"`
+	UserId  int64     `gorm:"size: 255"`
+	Time    time.Time `gorm:"size: 255"`
 }
 
 func ValidateToken(tokenString string, secret []byte) float64 {
@@ -62,7 +55,7 @@ func ValidateToken(tokenString string, secret []byte) float64 {
 
 	claims, _ := token.Claims.(jwt.MapClaims)
 
-	return claims["userid"].(float64)
+	return claims["id"].(float64)
 
 }
 
@@ -97,7 +90,15 @@ func main() {
 
 	updates := bot.GetUpdatesChan(u)
 
-	http.HandleFunc("GET /get-messages", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/get-messages", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		token := r.Header.Get("Authorization")
 
 		id := ValidateToken(token, []byte(SECRET))
@@ -110,24 +111,45 @@ func main() {
 		io.WriteString(w, string(content))
 	})
 
-	http.HandleFunc("POST /send-message", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/send-message", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		type Body struct {
+			Message string `json:"message"`
+		}
+
 		id := r.URL.Query().Get("id")
 		body, _ := io.ReadAll(r.Body)
 
-		var resbody SendMessageBody
+		var resbody Body
 		json.Unmarshal(body, &resbody)
 
 		userid, _ := strconv.ParseInt(id, 10, 64)
-		db.Create(&Message{Message: resbody.Message, UserId: userid})
+
+		db.Create(&Message{Message: resbody.Message, UserId: userid, Time: time.Now()})
 
 		io.WriteString(w, "The message Sent.")
 	})
 
-	http.HandleFunc("GET /get-profile", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+	http.HandleFunc("/get-profile", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		username := r.URL.Query().Get("username")
 
 		var result User
-		db.Where("id = ?", id).Find(&result)
+		db.Where("username = ?", username).Find(&result)
 
 		if result.ID == 0 {
 			w.WriteHeader(400)
@@ -141,15 +163,26 @@ func main() {
 
 	})
 
-	http.HandleFunc("POST /set-key", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+	http.HandleFunc("/set-key", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		type Body struct {
+			PublicKey string `json:"public_key"`
+		}
+		token := r.Header.Get("Authorization")
+
+		id := ValidateToken(token, []byte(SECRET))
 
 		body, _ := io.ReadAll(r.Body)
 
-		var resbody SetKeyBody
+		var resbody Body
 		json.Unmarshal(body, &resbody)
-
-		fmt.Println(resbody.PublicKey)
 
 		var result User
 		db.Model(&result).Where("id = ?", id).Update("public_key", resbody.PublicKey)
@@ -164,7 +197,43 @@ func main() {
 
 	})
 
-	http.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/set-username", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		type Body struct {
+			Username string `json:"username"`
+		}
+		token := r.Header.Get("Authorization")
+
+		id := ValidateToken(token, []byte(SECRET))
+
+		body, _ := io.ReadAll(r.Body)
+
+		var resbody Body
+		json.Unmarshal(body, &resbody)
+
+		var result User
+		db.Model(&result).Where("id = ?", id).Update("username", resbody.Username)
+
+		io.WriteString(w, "Username set successfully.")
+
+	})
+
+	http.HandleFunc("/confirm", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		code := r.URL.Query().Get("code")
 
 		var result OTP
@@ -181,13 +250,11 @@ func main() {
 		db.Create(&newUser)
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"userid": newUser.ID,
+			"id":     newUser.ID,
 			"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
 		})
 
-		tokenString, err := token.SignedString([]byte(SECRET))
-
-		fmt.Println(tokenString, err)
+		tokenString, _ := token.SignedString([]byte(SECRET))
 
 		io.WriteString(w, tokenString)
 

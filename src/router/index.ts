@@ -13,8 +13,13 @@ const router = createRouter({
       component: () => import('@/views/Auth.vue'),
     },
     {
-      path: '/setup',
+      path: '/confirm/:code',
       name: 'confirm',
+      component: () => import('@/views/Confirm.vue'),
+    },
+    {
+      path: '/setup',
+      name: 'setup',
       component: () => import('@/views/Setup.vue'),
     },
     {

@@ -1,7 +1,10 @@
 <script lang="ts" setup>
-import forge from 'node-forge'
 import { ref } from 'vue'
 import { RouterView } from 'vue-router'
+import forge from 'node-forge'
+import CopyText from '@/components/CopyText.vue'
+
+const myLink = ref(`http://localhost:5173/@yasha`)
 
 const hasKeys = ref(
   !!localStorage.getItem('private_key') && !!localStorage.getItem('public_key')
@@ -51,13 +54,15 @@ function exportKeys() {
 
 <template>
   <div>
-    <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg">
-      <img src="@/assets/lock.svg" alt="" onclick="modal_1.showModal()" />
-      <RouterLink
-        :to="{ name: 'profile', params: { username: 'yasha' } }"
+    <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg shadow-sm">
+      <div class="grid grid-cols-2 gap-x-3">
+        <img src="@/assets/settings.svg" alt="" onclick="modal_1.showModal()" />
+      </div>
+      <CopyText
+        text="My Link"
+        copy="https://google.com"
         class="text-[#119af5] test- font-semibold text-end"
-        >My Link</RouterLink
-      >
+      />
     </nav>
     <hr class="my-1 mx-4" />
     <RouterView />
