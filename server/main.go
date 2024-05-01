@@ -4,7 +4,6 @@ import (
 	// "encoding/json"
 	// "fmt"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -220,7 +219,7 @@ func main() {
 		type Body struct {
 			PublicKey string `json:"public_key"`
 		}
-		
+
 		token := r.Header.Get("Authorization")
 
 		id, err := ValidateToken(token, []byte(SECRET))
@@ -286,6 +285,14 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 
+		type Response struct {
+			Token     string `json:"token"`
+			ID        int64  `json:"id"`
+			Userid    int64  `json:"userid"`
+			Username  string `json:"username"`
+			PublicKey string `json:"publickey"`
+		}
+
 		if r.Method == "OPTIONS" {
 			return
 		}
@@ -311,7 +318,7 @@ func main() {
 		var res User
 		db.Where("userid = ?", result.Userid).Find(&res)
 
-		fmt.Println(result.Userid, res.ID)
+		w.Header().Add("Content-Type", "application/json; charset=utf-8")
 
 		if res.ID == 0 {
 			var newUser = User{Userid: result.Userid, Username: result.Username, PublicKey: ""}
@@ -321,9 +328,20 @@ func main() {
 				"id":     newUser.ID,
 				"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
 			})
+
 			tokenString, _ := token.SignedString([]byte(SECRET))
 
-			io.WriteString(w, tokenString)
+			var response = Response{
+				Token:     tokenString,
+				ID:        newUser.ID,
+				Userid:    newUser.Userid,
+				Username:  newUser.Username,
+				PublicKey: newUser.PublicKey,
+			}
+
+			content, _ := json.Marshal(response)
+
+			io.WriteString(w, string(content))
 			return
 
 		}
@@ -337,7 +355,17 @@ func main() {
 
 		db.Where("code = ?", code).Delete(&OTP{})
 
-		io.WriteString(w, tokenString)
+		var response = Response{
+			Token:     tokenString,
+			ID:        res.ID,
+			Userid:    res.Userid,
+			Username:  res.Username,
+			PublicKey: res.PublicKey,
+		}
+
+		content, _ := json.Marshal(response)
+
+		io.WriteString(w, string(content))
 
 	})
 
@@ -361,6 +389,11 @@ func main() {
 
 		var result User
 		db.Where("id = ?", id).Find(&result)
+
+		if result.ID == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		content, _ := json.Marshal(result)
 

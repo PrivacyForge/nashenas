@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
 import forge from 'node-forge'
 import axios from '@/plugins/axios'
+import { useAuthStore } from '@/stores/auth'
 
-const route = useRoute()
+const authStore = useAuthStore()
 
-const username = ref('')
+const username = ref(authStore.user.Username)
 const usernameErr = ref('')
 
 const loading = ref(false)
@@ -35,6 +35,7 @@ async function generateKeyPair() {
       .post('/set-key', { public_key: publicKey })
       .then(() => {
         state.value = 'key-generation'
+        authStore.user.PublicKey = publicKey
       })
       .finally(() => {
         loading.value = false
@@ -72,6 +73,7 @@ function importKeys(event: Event) {
     localStorage.setItem('private_key', privateKey)
     axios.post('/set-key', { public_key: publicKey }).then(() => {
       state.value = 'key-upload'
+      authStore.user.PublicKey = publicKey
     })
   }
   reader.readAsText(file)

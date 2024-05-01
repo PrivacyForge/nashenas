@@ -15,7 +15,7 @@ const middleware: NavigationGuard = async (to, from, next) => {
       authStore.user.PublicKey = data.PublicKey
       authStore.isAuth = true
 
-      next()
+      data.PublicKey ? next() : next({ name: 'setup' })
     })
     .catch(() => {
       next({ name: 'auth' })

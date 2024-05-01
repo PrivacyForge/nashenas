@@ -1,17 +1,20 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import forge from 'node-forge'
+import { useAuthStore } from '@/stores/auth'
 
 import CopyText from '@/components/CopyText.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
 
-const myLink = ref(`http://localhost:5173/@yasha`)
+const authStore = useAuthStore()
 
 const hasKeys = ref(
   !!localStorage.getItem('private_key') && !!localStorage.getItem('public_key')
 )
 const loading = ref(false)
+
+const myLink = computed(() => `${location.origin}/@${authStore.user.Username}`)
 
 async function generateKeyPair() {
   const keyPair = await forge.pki.rsa.generateKeyPair({
@@ -62,7 +65,7 @@ function exportKeys() {
       </div>
       <CopyText
         text="My Link"
-        copy="http://localhost:5173/@yasha"
+        :copy="myLink"
         class="text-[#119af5] test- font-semibold text-end"
       />
     </nav>
