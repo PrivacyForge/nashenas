@@ -23,7 +23,7 @@ const router = createRouter({
       component: () => import('@/views/Setup.vue'),
     },
     {
-      path: '/@:username',
+      path: '/@:username([a-zA-Z]{1}[a-zA-Z0-9]{4,})',
       name: 'profile',
       component: () => import('@/views/Profile.vue'),
     },
