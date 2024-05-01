@@ -1,4 +1,4 @@
-server/.dev.env
+server/.env
 server/*.db
 node_modules
 .env

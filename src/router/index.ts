@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AuthMiddleware from '@/middlewares/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,7 @@ const router = createRouter({
       path: '/setup',
       name: 'setup',
       component: () => import('@/views/Setup.vue'),
+      beforeEnter: AuthMiddleware,
     },
     {
       path: '/@:username([a-zA-Z]{1}[a-zA-Z0-9]{4,})',
@@ -35,6 +37,7 @@ const router = createRouter({
           path: '/inbox',
           name: 'inbox',
           component: () => import('@/views/Inbox.vue'),
+          beforeEnter: AuthMiddleware,
         },
       ],
     },
