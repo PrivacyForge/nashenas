@@ -62,7 +62,7 @@ function exportKeys() {
       </div>
       <CopyText
         text="My Link"
-        copy="https://google.com"
+        copy="http://localhost:5173/@yasha"
         class="text-[#119af5] test- font-semibold text-end"
       />
     </nav>

@@ -296,7 +296,11 @@ func main() {
 
 	})
 
-	go http.ListenAndServe(":"+PORT, nil)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "hello world!")
+	})
+
+	go http.ListenAndServe("0.0.0.0:"+PORT, nil)
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
@@ -316,7 +320,7 @@ func main() {
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, code)
 					msg.ReplyToMessageID = update.Message.MessageID
 
-					url := "http://192.168.152.239:5173/confirm/" + code
+					url := "http://localhost.com:5173/confirm/" + code
 
 					fmt.Println(url)
 
