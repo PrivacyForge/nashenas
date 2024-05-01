@@ -61,7 +61,7 @@ func ValidateToken(tokenString string, secret []byte) float64 {
 }
 
 func main() {
-	godotenv.Load(".dev.env")
+	godotenv.Load(".env")
 	PORT := os.Getenv("PORT")
 	DB_PATH := os.Getenv("DB_PATH")
 	BOT_TOKEN := os.Getenv("BOT_TOKEN")
@@ -300,7 +300,7 @@ func main() {
 		io.WriteString(w, "hello world!")
 	})
 
-	go http.ListenAndServe("0.0.0.0:"+PORT, nil)
+	go http.ListenAndServe(":"+PORT, nil)
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
