@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -125,10 +126,31 @@ func main() {
 		}
 
 		id := r.URL.Query().Get("id")
+
+		if id == "" {
+			w.WriteHeader(400)
+			io.WriteString(w, "The id query string is empty.")
+			return
+		}
+
+		matched, _ := regexp.MatchString("^[0-9]*$", id)
+
+		if !matched {
+			w.WriteHeader(400)
+			io.WriteString(w, "The id query string is invalid.")
+			return
+		}
+
 		body, _ := io.ReadAll(r.Body)
 
 		var resbody Body
 		json.Unmarshal(body, &resbody)
+
+		if resbody.Message == "" {
+			w.WriteHeader(400)
+			io.WriteString(w, "The message field body is empty.")
+			return
+		}
 
 		userid, _ := strconv.ParseInt(id, 10, 64)
 
@@ -147,6 +169,20 @@ func main() {
 		}
 
 		username := r.URL.Query().Get("username")
+
+		if username == "" {
+			w.WriteHeader(400)
+			io.WriteString(w, "The username query string is empty.")
+			return
+		}
+
+		matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
+
+		if !matched {
+			w.WriteHeader(400)
+			io.WriteString(w, "Username is invalid.")
+			return
+		}
 
 		var result User
 		db.Where("username = ?", username).Find(&result)
