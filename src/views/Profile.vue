@@ -63,7 +63,7 @@ onMounted(() => {
       })
       .catch((error) => {
         notFoundUser.value = true
-        errorMessage.value = error.response.data ?? 'Error.'
+        errorMessage.value = 'Not found user.'
       })
       .finally(() => {
         loading.value = false

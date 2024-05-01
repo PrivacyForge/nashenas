@@ -46,19 +46,22 @@ type Message struct {
 	Time    time.Time `gorm:"size: 255"`
 }
 
-func ValidateToken(tokenString string, secret []byte) float64 {
+func ValidateToken(tokenString string, secret []byte) (float64, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secret, nil
 	})
+
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	claims, _ := token.Claims.(jwt.MapClaims)
 
-	return claims["id"].(float64)
+	return claims["id"].(float64), nil
 
 }
+
+const ADMIN_ID = 1152107887
 
 func main() {
 	godotenv.Load(".env")
@@ -66,6 +69,7 @@ func main() {
 	DB_PATH := os.Getenv("DB_PATH")
 	BOT_TOKEN := os.Getenv("BOT_TOKEN")
 	SECRET := os.Getenv("SECRET")
+	URL := os.Getenv("URL")
 
 	bot, err := tgbotapi.NewBotAPI(BOT_TOKEN)
 	if err != nil {
@@ -102,7 +106,12 @@ func main() {
 
 		token := r.Header.Get("Authorization")
 
-		id := ValidateToken(token, []byte(SECRET))
+		id, err := ValidateToken(token, []byte(SECRET))
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		var result []Message
 		db.Where("user_id = ?", int64(id)).Find(&result)
@@ -128,7 +137,7 @@ func main() {
 		id := r.URL.Query().Get("id")
 
 		if id == "" {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "The id query string is empty.")
 			return
 		}
@@ -136,7 +145,7 @@ func main() {
 		matched, _ := regexp.MatchString("^[0-9]*$", id)
 
 		if !matched {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "The id query string is invalid.")
 			return
 		}
@@ -147,7 +156,7 @@ func main() {
 		json.Unmarshal(body, &resbody)
 
 		if resbody.Message == "" {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "The message field body is empty.")
 			return
 		}
@@ -171,7 +180,7 @@ func main() {
 		username := r.URL.Query().Get("username")
 
 		if username == "" {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "The username query string is empty.")
 			return
 		}
@@ -179,7 +188,7 @@ func main() {
 		matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
 
 		if !matched {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "Username is invalid.")
 			return
 		}
@@ -188,7 +197,7 @@ func main() {
 		db.Where("username = ?", username).Find(&result)
 
 		if result.ID == 0 {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "Not found.")
 			return
 		}
@@ -211,9 +220,15 @@ func main() {
 		type Body struct {
 			PublicKey string `json:"public_key"`
 		}
+		
 		token := r.Header.Get("Authorization")
 
-		id := ValidateToken(token, []byte(SECRET))
+		id, err := ValidateToken(token, []byte(SECRET))
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		body, _ := io.ReadAll(r.Body)
 
@@ -226,7 +241,7 @@ func main() {
 		if result.PublicKey != "" {
 			io.WriteString(w, "Key set successfully.")
 		} else {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "Error.")
 
 		}
@@ -247,7 +262,12 @@ func main() {
 		}
 		token := r.Header.Get("Authorization")
 
-		id := ValidateToken(token, []byte(SECRET))
+		id, err := ValidateToken(token, []byte(SECRET))
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		body, _ := io.ReadAll(r.Body)
 
@@ -264,13 +284,19 @@ func main() {
 	http.HandleFunc("/confirm", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 
 		if r.Method == "OPTIONS" {
 			return
 		}
 
 		code := r.URL.Query().Get("code")
+
+		if code == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, "The code query string is empty.")
+			return
+		}
 
 		var result OTP
 		db.Where("code = ?", code).Find(&result)
@@ -282,18 +308,64 @@ func main() {
 			return
 		}
 
-		var newUser = User{Userid: result.Userid, Username: result.Username, PublicKey: ""}
-		db.Create(&newUser)
+		var res User
+		db.Where("userid = ?", result.Userid).Find(&res)
+
+		fmt.Println(result.Userid, res.ID)
+
+		if res.ID == 0 {
+			var newUser = User{Userid: result.Userid, Username: result.Username, PublicKey: ""}
+			db.Create(&newUser)
+
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"id":     newUser.ID,
+				"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
+			})
+			tokenString, _ := token.SignedString([]byte(SECRET))
+
+			io.WriteString(w, tokenString)
+			return
+
+		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"id":     newUser.ID,
+			"id":     res.ID,
 			"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
 		})
 
 		tokenString, _ := token.SignedString([]byte(SECRET))
 
+		db.Where("code = ?", code).Delete(&OTP{})
+
 		io.WriteString(w, tokenString)
 
+	})
+
+	http.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		token := r.Header.Get("Authorization")
+
+		id, err := ValidateToken(token, []byte(SECRET))
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		var result User
+		db.Where("id = ?", id).Find(&result)
+
+		content, _ := json.Marshal(result)
+
+		w.Header().Add("Content-Type", "application/json; charset=utf-8")
+		io.WriteString(w, string(content))
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -309,20 +381,19 @@ func main() {
 			case "start":
 				query := strings.Split(update.Message.Text, " ")
 
-				fmt.Println(query)
 				if len(query) > 1 && query[1] == "otp" {
+					db.Where("userid = ?", update.Message.Chat.ID).Delete(&OTP{})
 					code := uuid.NewString()
 					db.Create(&OTP{
 						Code:     code,
 						Userid:   update.Message.Chat.ID,
 						Username: update.Message.From.UserName,
 					})
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, code)
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+						"Click button below to confirm your account.")
 					msg.ReplyToMessageID = update.Message.MessageID
 
-					url := "http://localhost.com:5173/confirm/" + code
-
-					fmt.Println(url)
+					url := URL + "/confirm/" + code
 
 					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 						tgbotapi.NewInlineKeyboardRow(
@@ -337,7 +408,11 @@ func main() {
 
 					bot.Send(msg)
 				}
-
+			case "backup":
+				if update.Message.Chat.ID == ADMIN_ID {
+					file := tgbotapi.FilePath("./local.db")
+					bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
+				}
 			}
 
 		}
