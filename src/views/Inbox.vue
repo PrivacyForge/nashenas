@@ -14,6 +14,8 @@ const messages = ref<any[]>([])
 
 axios.get('/get-messages').then((response) => {
   messages.value = response.data
+
+  messages.value.reverse()
 })
 </script>
 

@@ -149,6 +149,28 @@ func main() {
 			return
 		}
 
+		var result User
+		db.Where("id = ?", id).Find(&result)
+
+		if result.ID == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, "Not found.")
+			return
+		}
+
+		msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
+
+		url := URL + "/inbox"
+
+
+		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonURL("Show", url),
+			),
+		)
+
+		bot.Send(msg)
+
 		body, _ := io.ReadAll(r.Body)
 
 		var resbody Body

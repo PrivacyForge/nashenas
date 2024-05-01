@@ -87,14 +87,17 @@ onMounted(() => {
           />
         </template>
         <template v-else>
-          <p>Write something for Yasha...</p>
+          <p>Write something for {{ $route.params.username }}...</p>
           <textarea
             v-model="message"
             class="textarea textarea-bordered w-full focus:outline-[#119af5]"
             placeholder="Message..."
             dir="auto"
           ></textarea>
-          <Button :loading="submitLoading" @click="submit"
+          <Button
+            :disabled="message.length < 3"
+            :loading="submitLoading"
+            @click="submit"
             >Send to @{{ $route.params.username }}</Button
           >
         </template>
@@ -103,7 +106,7 @@ onMounted(() => {
         <p class="text-center text-[#119af5] font-semibold">
           Your encrypted message has been sent.
         </p>
-        <Button @click="sent = false">Send another message</Button>
+        <Button @click="$router.push({ name: 'auth' })">Create account</Button>
       </template>
     </template>
   </div>
