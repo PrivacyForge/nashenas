@@ -7,7 +7,7 @@ import Telegram from '@/components/icons/Telegram.vue'
     <div>
       <a
         class="flex bg-[#119af5] text-white font-semibold py-4 px-8 rounded-lg text-lg"
-        href="https://telegram.me/fihawdhaw02bot?start=otp"
+        href="https://telegram.me/nashenase2ebot?start=otp"
         target="_blank"
       >
         Start Our Telegram Bot
