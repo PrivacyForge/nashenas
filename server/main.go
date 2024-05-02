@@ -11,39 +11,13 @@ import (
 	"strconv"
 	"time"
 
-	"log"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
-
-type OTP struct {
-	gorm.Model
-	Userid   int64  `gorm:"size: 255"`
-	Username string `gorm:"size: 255"`
-	Code     string `gorm:"size: 255"`
-}
-
-type User struct {
-	gorm.Model
-	ID        int64  `gorm:"primaryKey"`
-	Userid    int64  `gorm:"size: 255"`
-	Username  string `gorm:"size: 255"`
-	PublicKey string `gorm:"size: 255"`
-}
-
-type Message struct {
-	gorm.Model
-	ID      int64     `gorm:"primaryKey"`
-	Message string    `gorm:"size: 255"`
-	UserId  int64     `gorm:"size: 255"`
-	Time    time.Time `gorm:"size: 255"`
-}
 
 func ValidateToken(tokenString string, secret []byte) (float64, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -65,34 +39,20 @@ const ADMIN_ID = 1152107887
 func main() {
 	godotenv.Load(".env")
 	PORT := os.Getenv("PORT")
-	DB_PATH := os.Getenv("DB_PATH")
-	BOT_TOKEN := os.Getenv("BOT_TOKEN")
 	SECRET := os.Getenv("SECRET")
 	URL := os.Getenv("URL")
 
-	bot, err := tgbotapi.NewBotAPI(BOT_TOKEN)
-	if err != nil {
-		log.Panic(err)
+	if err := InitConnection(); err != nil {
+		panic("database connection failed.")
 	}
 
-	db, err := gorm.Open(sqlite.Open(DB_PATH), &gorm.Config{})
+	Migration()
+
+	updates, err := InitBot()
 
 	if err != nil {
-		panic("failed to connect database")
+		panic("telegram bot connection failed.")
 	}
-
-	db.AutoMigrate(&OTP{})
-	db.AutoMigrate(&User{})
-	db.AutoMigrate(&Message{})
-
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := bot.GetUpdatesChan(u)
 
 	http.HandleFunc("/get-messages", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -161,7 +121,6 @@ func main() {
 		msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
 
 		url := URL + "/inbox"
-
 
 		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
@@ -430,46 +389,47 @@ func main() {
 	go http.ListenAndServe(":"+PORT, nil)
 
 	for update := range updates {
-		if update.Message != nil { // If we got a message
-
-			switch update.Message.Command() {
-			case "start":
-				query := strings.Split(update.Message.Text, " ")
-
-				if len(query) > 1 && query[1] == "otp" {
-					db.Where("userid = ?", update.Message.Chat.ID).Delete(&OTP{})
-					code := uuid.NewString()
-					db.Create(&OTP{
-						Code:     code,
-						Userid:   update.Message.Chat.ID,
-						Username: update.Message.From.UserName,
-					})
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-						"Click button below to confirm your account.")
-					msg.ReplyToMessageID = update.Message.MessageID
-
-					url := URL + "/confirm/" + code
-
-					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-						tgbotapi.NewInlineKeyboardRow(
-							tgbotapi.NewInlineKeyboardButtonURL("Confirm", url),
-						),
-					)
-
-					bot.Send(msg)
-				} else {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
-					msg.ReplyToMessageID = update.Message.MessageID
-
-					bot.Send(msg)
-				}
-			case "backup":
-				if update.Message.Chat.ID == ADMIN_ID {
-					file := tgbotapi.FilePath("./local.db")
-					bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
-				}
-			}
-
+		if update.Message == nil {
+			continue
 		}
+
+		switch update.Message.Command() {
+		case "start":
+			query := strings.Split(update.Message.Text, " ")
+
+			if len(query) > 1 && query[1] == "otp" {
+				db.Where("userid = ?", update.Message.Chat.ID).Delete(&OTP{})
+				code := uuid.NewString()
+				db.Create(&OTP{
+					Code:     code,
+					Userid:   update.Message.Chat.ID,
+					Username: update.Message.From.UserName,
+				})
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+					"Click button below to confirm your account.")
+				msg.ReplyToMessageID = update.Message.MessageID
+
+				url := URL + "/confirm/" + code
+
+				msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+					tgbotapi.NewInlineKeyboardRow(
+						tgbotapi.NewInlineKeyboardButtonURL("Confirm", url),
+					),
+				)
+
+				bot.Send(msg)
+			} else {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
+				msg.ReplyToMessageID = update.Message.MessageID
+
+				bot.Send(msg)
+			}
+		case "backup":
+			if update.Message.Chat.ID == ADMIN_ID {
+				file := tgbotapi.FilePath("./local.db")
+				bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
+			}
+		}
+
 	}
 }
