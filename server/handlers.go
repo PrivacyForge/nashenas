@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"regexp"
+	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -78,6 +83,23 @@ func SetUsername(c *fiber.Ctx) error {
 		return err
 	}
 
+	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", body.Username)
+
+	if !matched {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Message: "Username is invalid",
+		})
+	}
+
+	var res User
+	db.Model(&User{}).Where("username = ?", body.Username).Find(&res)
+
+	if res.ID != 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Message: "Username is duplicate",
+		})
+	}
+
 	var result User
 	db.Model(&result).Where("id = ?", int(id)).Update("username", body.Username)
 
@@ -87,181 +109,101 @@ func SetUsername(c *fiber.Ctx) error {
 	})
 }
 
-// func SetKeyHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Headers", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+func SetPublicKey(c *fiber.Ctx) error {
+	id := c.Locals("id").(float64)
+	var body SetPublicKeyRequest
 
-// 	if r.Method == "OPTIONS" {
-// 		return
-// 	}
+	if err := c.BodyParser(&body); err != nil {
+		return err
+	}
 
-// 	SECRET := os.Getenv("SECRET")
+	if body.PublicKey == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Message: "Public key is empty",
+		})
+	}
 
-// 	type Body struct {
-// 		PublicKey string `json:"public_key"`
-// 	}
+	var result User
+	db.Model(&result).Where("id = ?", id).Update("public_key", body.PublicKey)
 
-// 	token := r.Header.Get("Authorization")
+	return c.JSON(SetPublicKeyResponse{
+		PublicKey: body.PublicKey,
+		Message:   "Public key set successfully",
+	})
+}
 
-// 	id, err := ValidateToken(token, []byte(SECRET))
+func GetProfile(c *fiber.Ctx) error {
+	username := c.Params("username")
 
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		return
-// 	}
+	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
 
-// 	body, _ := io.ReadAll(r.Body)
+	if !matched {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Message: "Username is invalid",
+		})
+	}
 
-// 	var resbody Body
-// 	json.Unmarshal(body, &resbody)
+	var result User
+	db.Where("username = ?", username).Find(&result)
 
-// 	var result User
-// 	db.Model(&result).Where("id = ?", id).Update("public_key", resbody.PublicKey)
+	if result.ID == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{
+			Message: "User Not found",
+		})
+	}
 
-// 	if result.PublicKey != "" {
-// 		io.WriteString(w, "Key set successfully.")
-// 	} else {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "Error.")
+	return c.JSON(GetProfileResponse{
+		ID:        result.ID,
+		Username:  result.Username,
+		PublicKey: result.PublicKey,
+	})
+}
 
-// 	}
+func SendMessage(c *fiber.Ctx) error {
+	URL := os.Getenv("URL")
 
-// }
+	var body SendMessageRequest
 
-// func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Headers", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+	if err := c.BodyParser(&body); err != nil {
+		return err
+	}
 
-// 	if r.Method == "OPTIONS" {
-// 		return
-// 	}
+	matched, _ := regexp.MatchString("^[0-9]*$", fmt.Sprintf("%v", body.Id))
 
-// 	username := r.URL.Query().Get("username")
+	if !matched || len(body.Message) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Message: "Bad Request"})
+	}
 
-// 	if username == "" {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "The username query string is empty.")
-// 		return
-// 	}
+	var result User
+	db.Where("id = ?", body.Id).Find(&result)
 
-// 	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
+	if result.ID == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{Message: "User not found"})
+	}
 
-// 	if !matched {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "Username is invalid.")
-// 		return
-// 	}
+	db.Create(&Message{Message: body.Message, UserId: body.Id, Time: time.Now()})
 
-// 	var result User
-// 	db.Where("username = ?", username).Find(&result)
+	// send alarm by telegram bot
+	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
 
-// 	if result.ID == 0 {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "Not found.")
-// 		return
-// 	}
+	url := URL + "/inbox"
 
-// 	content, _ := json.Marshal(result)
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
+		),
+	)
 
-// 	io.WriteString(w, string(content))
-// }
+	bot.Send(msg)
 
-// func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Headers", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+	return c.JSON(SendMessageResponse{Message: "The message was sent"})
+}
 
-// 	if r.Method == "OPTIONS" {
-// 		return
-// 	}
+func GetMessages(c *fiber.Ctx) error {
+	id := c.Locals("id").(float64)
 
-// 	type Body struct {
-// 		Message string `json:"message"`
-// 	}
+	var result []Message
+	db.Where("user_id = ?", int64(id)).Find(&result)
 
-// 	URL := os.Getenv("URL")
-
-// 	id := r.URL.Query().Get("id")
-
-// 	if id == "" {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "The id query string is empty.")
-// 		return
-// 	}
-
-// 	matched, _ := regexp.MatchString("^[0-9]*$", id)
-
-// 	if !matched {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "The id query string is invalid.")
-// 		return
-// 	}
-
-// 	var result User
-// 	db.Where("id = ?", id).Find(&result)
-
-// 	if result.ID == 0 {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "Not found.")
-// 		return
-// 	}
-
-// 	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
-
-// 	url := URL + "/inbox"
-
-// 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-// 		tgbotapi.NewInlineKeyboardRow(
-// 			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
-// 		),
-// 	)
-
-// 	bot.Send(msg)
-
-// 	body, _ := io.ReadAll(r.Body)
-
-// 	var resbody Body
-// 	json.Unmarshal(body, &resbody)
-
-// 	if resbody.Message == "" {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		io.WriteString(w, "The message field body is empty.")
-// 		return
-// 	}
-
-// 	userid, _ := strconv.ParseInt(id, 10, 64)
-
-// 	db.Create(&Message{Message: resbody.Message, UserId: userid, Time: time.Now()})
-
-// 	io.WriteString(w, "The message Sent.")
-// }
-
-// func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Headers", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
-
-// 	if r.Method == "OPTIONS" {
-// 		return
-// 	}
-
-// 	SECRET := os.Getenv("SECRET")
-
-// 	token := r.Header.Get("Authorization")
-
-// 	id, err := ValidateToken(token, []byte(SECRET))
-
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	var result []Message
-// 	db.Where("user_id = ?", int64(id)).Find(&result)
-
-// 	content, _ := json.Marshal(result)
-
-// 	io.WriteString(w, string(content))
-// }
+	return c.JSON(result)
+}

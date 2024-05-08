@@ -31,11 +31,6 @@ func main() {
 		panic("telegram bot connection failed.")
 	}
 
-	// http.HandleFunc("/get-messages", GetMessagesHandler)
-	// http.HandleFunc("/send-message", SendMessageHandler)
-	// http.HandleFunc("/get-profile", GetProfileHandler)
-	// http.HandleFunc("/set-key", SetKeyHandler)
-
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "*",
