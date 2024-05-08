@@ -2,28 +2,13 @@ package main
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"net/http"
 	"os"
 	"strings"
 )
-
-func ValidateToken(tokenString string, secret []byte) (float64, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secret, nil
-	})
-
-	if err != nil {
-		return 0, err
-	}
-
-	claims, _ := token.Claims.(jwt.MapClaims)
-
-	return claims["id"].(float64), nil
-
-}
 
 const ADMIN_ID = 1152107887
 
@@ -31,6 +16,8 @@ func main() {
 	godotenv.Load(".env")
 	PORT := os.Getenv("PORT")
 	URL := os.Getenv("URL")
+
+	app := fiber.New()
 
 	if err := InitConnection(); err != nil {
 		panic("database connection failed.")
@@ -44,16 +31,19 @@ func main() {
 		panic("telegram bot connection failed.")
 	}
 
-	http.HandleFunc("/get-messages", GetMessagesHandler)
-	http.HandleFunc("/send-message", SendMessageHandler)
-	http.HandleFunc("/get-profile", GetProfileHandler)
-	http.HandleFunc("/set-key", SetKeyHandler)
-	http.HandleFunc("/set-username", SetUsernameHandler)
-	http.HandleFunc("/confirm", ConfirmHandler)
-	http.HandleFunc("/me", MeHandler)
-	http.HandleFunc("/", HelloWorldHandler)
+	// http.HandleFunc("/get-messages", GetMessagesHandler)
+	// http.HandleFunc("/send-message", SendMessageHandler)
+	// http.HandleFunc("/get-profile", GetProfileHandler)
+	// http.HandleFunc("/set-key", SetKeyHandler)
 
-	go http.ListenAndServe(":"+PORT, nil)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "*",
+	}))
+
+	app = DefineRoutes(app)
+
+	go app.Listen(":" + PORT)
 
 	for update := range updates {
 		if update.Message == nil {

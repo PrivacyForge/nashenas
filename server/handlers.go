@@ -1,358 +1,267 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
-	"os"
-	"regexp"
-	"strconv"
-	"time"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/golang-jwt/jwt/v5"
+	"fmt"
+	"github.com/gofiber/fiber/v2"
 )
 
-func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "hello world!")
+func HelloWorld(c *fiber.Ctx) error {
+	id := c.Locals("id").(float64)
+
+	return c.SendString("Hello, World!" + fmt.Sprintf("%v", int(id)))
 }
 
-func MeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	SECRET := os.Getenv("SECRET")
-
-	token := r.Header.Get("Authorization")
-
-	id, err := ValidateToken(token, []byte(SECRET))
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+func GetMe(c *fiber.Ctx) error {
+	id := c.Locals("id").(float64)
 
 	var result User
-	db.Where("id = ?", id).Find(&result)
+	db.Where("id = ?", int(id)).Find(&result)
 
 	if result.ID == 0 {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Message: "Bad Request"})
 	}
-
-	content, _ := json.Marshal(result)
-
-	w.Header().Add("Content-Type", "application/json; charset=utf-8")
-	io.WriteString(w, string(content))
-
+	return c.JSON(result)
 }
 
-func ConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-
-	type Response struct {
-		Token     string `json:"token"`
-		ID        int64  `json:"id"`
-		Userid    int64  `json:"userid"`
-		Username  string `json:"username"`
-		PublicKey string `json:"publickey"`
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	SECRET := os.Getenv("SECRET")
-
-	code := r.URL.Query().Get("code")
-
-	if code == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "The code query string is empty.")
-		return
-	}
+func ConfirmOTP(c *fiber.Ctx) error {
+	otp := c.Params("otp")
 
 	var result OTP
-	db.Where("code = ?", code).Find(&result)
+	db.Where("code = ?", otp).Find(&result)
 
 	if result.ID == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Code is invalid")
-
-		return
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Message: "OTP is invalid.",
+		})
 	}
+
+	db.Where("code = ?", otp).Delete(&OTP{})
 
 	var res User
 	db.Where("userid = ?", result.Userid).Find(&res)
 
-	w.Header().Add("Content-Type", "application/json; charset=utf-8")
-
+	// if user does not exist
 	if res.ID == 0 {
-		var newUser = User{Userid: result.Userid, Username: result.Username, PublicKey: ""}
+		var newUser = User{Userid: result.Userid, Username: "", PublicKey: ""}
 		db.Create(&newUser)
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"id":     newUser.ID,
-			"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
-		})
-
-		tokenString, _ := token.SignedString([]byte(SECRET))
-
-		var response = Response{
-			Token:     tokenString,
+		token, _ := GenerateToken(newUser.ID)
+		var response = ConfirmResponse{
+			Token:     token,
 			ID:        newUser.ID,
 			Userid:    newUser.Userid,
 			Username:  newUser.Username,
 			PublicKey: newUser.PublicKey,
 		}
-
-		content, _ := json.Marshal(response)
-
-		io.WriteString(w, string(content))
-		return
-
+		return c.JSON(response)
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":     res.ID,
-		"expire": time.Now().Add(time.Hour * 24 * 30).Unix(),
-	})
+	token, _ := GenerateToken(res.ID)
 
-	tokenString, _ := token.SignedString([]byte(SECRET))
-
-	db.Where("code = ?", code).Delete(&OTP{})
-
-	var response = Response{
-		Token:     tokenString,
+	var response = ConfirmResponse{
+		Token:     token,
 		ID:        res.ID,
 		Userid:    res.Userid,
 		Username:  res.Username,
 		PublicKey: res.PublicKey,
 	}
 
-	content, _ := json.Marshal(response)
-
-	io.WriteString(w, string(content))
+	return c.JSON(response)
 }
 
-func SetUsernameHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+func SetUsername(c *fiber.Ctx) error {
+	id := c.Locals("id").(float64)
 
-	if r.Method == "OPTIONS" {
-		return
-	}
+	var body SetUsernameRequest
 
-	SECRET := os.Getenv("SECRET")
-
-	type Body struct {
-		Username string `json:"username"`
-	}
-
-	token := r.Header.Get("Authorization")
-
-	id, err := ValidateToken(token, []byte(SECRET))
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	body, _ := io.ReadAll(r.Body)
-
-	var resbody Body
-	json.Unmarshal(body, &resbody)
-
-	var result User
-	db.Model(&result).Where("id = ?", id).Update("username", resbody.Username)
-
-	io.WriteString(w, "Username set successfully.")
-
-}
-
-func SetKeyHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	SECRET := os.Getenv("SECRET")
-
-	type Body struct {
-		PublicKey string `json:"public_key"`
-	}
-
-	token := r.Header.Get("Authorization")
-
-	id, err := ValidateToken(token, []byte(SECRET))
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	body, _ := io.ReadAll(r.Body)
-
-	var resbody Body
-	json.Unmarshal(body, &resbody)
-
-	var result User
-	db.Model(&result).Where("id = ?", id).Update("public_key", resbody.PublicKey)
-
-	if result.PublicKey != "" {
-		io.WriteString(w, "Key set successfully.")
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Error.")
-
-	}
-
-}
-
-func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	username := r.URL.Query().Get("username")
-
-	if username == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "The username query string is empty.")
-		return
-	}
-
-	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
-
-	if !matched {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Username is invalid.")
-		return
+	if err := c.BodyParser(&body); err != nil {
+		return err
 	}
 
 	var result User
-	db.Where("username = ?", username).Find(&result)
+	db.Model(&result).Where("id = ?", int(id)).Update("username", body.Username)
 
-	if result.ID == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Not found.")
-		return
-	}
-
-	content, _ := json.Marshal(result)
-
-	io.WriteString(w, string(content))
+	return c.JSON(SetUsernameResponse{
+		Username: body.Username,
+		Message:  "Username set successfully",
+	})
 }
 
-func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+// func SetKeyHandler(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Header().Set("Access-Control-Allow-Headers", "*")
+// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 
-	if r.Method == "OPTIONS" {
-		return
-	}
+// 	if r.Method == "OPTIONS" {
+// 		return
+// 	}
 
-	type Body struct {
-		Message string `json:"message"`
-	}
+// 	SECRET := os.Getenv("SECRET")
 
-	URL := os.Getenv("URL")
+// 	type Body struct {
+// 		PublicKey string `json:"public_key"`
+// 	}
 
-	id := r.URL.Query().Get("id")
+// 	token := r.Header.Get("Authorization")
 
-	if id == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "The id query string is empty.")
-		return
-	}
+// 	id, err := ValidateToken(token, []byte(SECRET))
 
-	matched, _ := regexp.MatchString("^[0-9]*$", id)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusUnauthorized)
+// 		return
+// 	}
 
-	if !matched {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "The id query string is invalid.")
-		return
-	}
+// 	body, _ := io.ReadAll(r.Body)
 
-	var result User
-	db.Where("id = ?", id).Find(&result)
+// 	var resbody Body
+// 	json.Unmarshal(body, &resbody)
 
-	if result.ID == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Not found.")
-		return
-	}
+// 	var result User
+// 	db.Model(&result).Where("id = ?", id).Update("public_key", resbody.PublicKey)
 
-	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
+// 	if result.PublicKey != "" {
+// 		io.WriteString(w, "Key set successfully.")
+// 	} else {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "Error.")
 
-	url := URL + "/inbox"
+// 	}
 
-	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
-		),
-	)
+// }
 
-	bot.Send(msg)
+// func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Header().Set("Access-Control-Allow-Headers", "*")
+// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 
-	body, _ := io.ReadAll(r.Body)
+// 	if r.Method == "OPTIONS" {
+// 		return
+// 	}
 
-	var resbody Body
-	json.Unmarshal(body, &resbody)
+// 	username := r.URL.Query().Get("username")
 
-	if resbody.Message == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "The message field body is empty.")
-		return
-	}
+// 	if username == "" {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "The username query string is empty.")
+// 		return
+// 	}
 
-	userid, _ := strconv.ParseInt(id, 10, 64)
+// 	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
 
-	db.Create(&Message{Message: resbody.Message, UserId: userid, Time: time.Now()})
+// 	if !matched {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "Username is invalid.")
+// 		return
+// 	}
 
-	io.WriteString(w, "The message Sent.")
-}
+// 	var result User
+// 	db.Where("username = ?", username).Find(&result)
 
-func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+// 	if result.ID == 0 {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "Not found.")
+// 		return
+// 	}
 
-	if r.Method == "OPTIONS" {
-		return
-	}
+// 	content, _ := json.Marshal(result)
 
-	SECRET := os.Getenv("SECRET")
+// 	io.WriteString(w, string(content))
+// }
 
-	token := r.Header.Get("Authorization")
+// func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Header().Set("Access-Control-Allow-Headers", "*")
+// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 
-	id, err := ValidateToken(token, []byte(SECRET))
+// 	if r.Method == "OPTIONS" {
+// 		return
+// 	}
 
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+// 	type Body struct {
+// 		Message string `json:"message"`
+// 	}
 
-	var result []Message
-	db.Where("user_id = ?", int64(id)).Find(&result)
+// 	URL := os.Getenv("URL")
 
-	content, _ := json.Marshal(result)
+// 	id := r.URL.Query().Get("id")
 
-	io.WriteString(w, string(content))
-}
+// 	if id == "" {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "The id query string is empty.")
+// 		return
+// 	}
+
+// 	matched, _ := regexp.MatchString("^[0-9]*$", id)
+
+// 	if !matched {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "The id query string is invalid.")
+// 		return
+// 	}
+
+// 	var result User
+// 	db.Where("id = ?", id).Find(&result)
+
+// 	if result.ID == 0 {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "Not found.")
+// 		return
+// 	}
+
+// 	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
+
+// 	url := URL + "/inbox"
+
+// 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+// 		tgbotapi.NewInlineKeyboardRow(
+// 			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
+// 		),
+// 	)
+
+// 	bot.Send(msg)
+
+// 	body, _ := io.ReadAll(r.Body)
+
+// 	var resbody Body
+// 	json.Unmarshal(body, &resbody)
+
+// 	if resbody.Message == "" {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		io.WriteString(w, "The message field body is empty.")
+// 		return
+// 	}
+
+// 	userid, _ := strconv.ParseInt(id, 10, 64)
+
+// 	db.Create(&Message{Message: resbody.Message, UserId: userid, Time: time.Now()})
+
+// 	io.WriteString(w, "The message Sent.")
+// }
+
+// func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Header().Set("Access-Control-Allow-Headers", "*")
+// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
+// 	if r.Method == "OPTIONS" {
+// 		return
+// 	}
+
+// 	SECRET := os.Getenv("SECRET")
+
+// 	token := r.Header.Get("Authorization")
+
+// 	id, err := ValidateToken(token, []byte(SECRET))
+
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	var result []Message
+// 	db.Where("user_id = ?", int64(id)).Find(&result)
+
+// 	content, _ := json.Marshal(result)
+
+// 	io.WriteString(w, string(content))
+// }
