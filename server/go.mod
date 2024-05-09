@@ -1,4 +1,4 @@
-module main
+module github.com/PrivacyForge/nashenas
 
 go 1.22.2
 

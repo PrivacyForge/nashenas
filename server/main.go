@@ -5,17 +5,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
-	"os"
 	"strings"
+
+	"github.com/PrivacyForge/nashenas/configs"
 )
 
 const ADMIN_ID = 1152107887
 
 func main() {
-	godotenv.Load(".env")
-	PORT := os.Getenv("PORT")
-	URL := os.Getenv("URL")
+
+	configs.LoadConfigs()
 
 	app := fiber.New()
 
@@ -38,7 +37,7 @@ func main() {
 
 	app = DefineRoutes(app)
 
-	go app.Listen(":" + PORT)
+	go app.Listen(":" + configs.ServerPort)
 
 	for update := range updates {
 		if update.Message == nil {
@@ -61,7 +60,7 @@ func main() {
 					"Click button below to confirm your account.")
 				msg.ReplyToMessageID = update.Message.MessageID
 
-				url := URL + "/confirm/" + code
+				url := configs.Url + "/confirm/" + code
 
 				msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 					tgbotapi.NewInlineKeyboardRow(
