@@ -1,17 +1,18 @@
-package main
+package middlewares
 
 import (
 	"os"
 	"strings"
 
+	"github.com/PrivacyForge/nashenas/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func BearerTokenMiddleware(c *fiber.Ctx) error {
+func BearerToken(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(ErrorResponse{
+		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
 			Message: "Unauthorized",
 		})
 	}
@@ -19,7 +20,7 @@ func BearerTokenMiddleware(c *fiber.Ctx) error {
 	// Check if the Authorization header starts with "Bearer "
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		return c.Status(fiber.StatusUnauthorized).JSON(ErrorResponse{
+		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
 			Message: "Unauthorized",
 		})
 	}
@@ -31,7 +32,7 @@ func BearerTokenMiddleware(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(ErrorResponse{
+		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
 			Message: "Unauthorized",
 		})
 	}

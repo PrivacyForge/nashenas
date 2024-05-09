@@ -1,14 +1,14 @@
-package main
+package request
 
-type SetUsernameRequest struct {
+type SetUsername struct {
 	Username string `json:"username"`
 }
 
-type SetPublicKeyRequest struct {
+type SetPublicKey struct {
 	PublicKey string `json:"public_key"`
 }
 
-type SendMessageRequest struct {
+type SendMessage struct {
 	Id      int64  `json:"id"`
 	Message string `json:"message"`
 }

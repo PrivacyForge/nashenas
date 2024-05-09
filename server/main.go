@@ -1,13 +1,17 @@
 package main
 
 import (
+	"strings"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/google/uuid"
-	"strings"
 
 	"github.com/PrivacyForge/nashenas/configs"
+	"github.com/PrivacyForge/nashenas/database"
+	"github.com/PrivacyForge/nashenas/routes"
+	"github.com/PrivacyForge/nashenas/telegram"
 )
 
 const ADMIN_ID = 1152107887
@@ -18,13 +22,13 @@ func main() {
 
 	app := fiber.New()
 
-	if err := InitConnection(); err != nil {
+	if err := database.InitConnection(); err != nil {
 		panic("database connection failed.")
 	}
 
-	Migration()
+	database.Migration()
 
-	updates, err := InitBot()
+	updates, err := telegram.InitBot()
 
 	if err != nil {
 		panic("telegram bot connection failed.")
@@ -35,7 +39,7 @@ func main() {
 		AllowHeaders: "*",
 	}))
 
-	app = DefineRoutes(app)
+	app = routes.DefineRoutes(app)
 
 	go app.Listen(":" + configs.ServerPort)
 
@@ -49,9 +53,9 @@ func main() {
 			query := strings.Split(update.Message.Text, " ")
 
 			if len(query) > 1 && query[1] == "otp" {
-				db.Where("userid = ?", update.Message.Chat.ID).Delete(&OTP{})
+				database.DB.Where("userid = ?", update.Message.Chat.ID).Delete(&database.OTP{})
 				code := uuid.NewString()
-				db.Create(&OTP{
+				database.DB.Create(&database.OTP{
 					Code:     code,
 					Userid:   update.Message.Chat.ID,
 					Username: update.Message.From.UserName,
@@ -68,17 +72,17 @@ func main() {
 					),
 				)
 
-				bot.Send(msg)
+				telegram.Bot.Send(msg)
 			} else {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
 				msg.ReplyToMessageID = update.Message.MessageID
 
-				bot.Send(msg)
+				telegram.Bot.Send(msg)
 			}
 		case "backup":
 			if update.Message.Chat.ID == ADMIN_ID {
 				file := tgbotapi.FilePath("./local.db")
-				bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
+				telegram.Bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
 			}
 		}
 

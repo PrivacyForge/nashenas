@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -6,6 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/PrivacyForge/nashenas/database"
+	"github.com/PrivacyForge/nashenas/request"
+	"github.com/PrivacyForge/nashenas/response"
+	"github.com/PrivacyForge/nashenas/telegram"
+	"github.com/PrivacyForge/nashenas/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,11 +24,11 @@ func HelloWorld(c *fiber.Ctx) error {
 func GetMe(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
 
-	var result User
-	db.Where("id = ?", int(id)).Find(&result)
+	var result database.User
+	database.DB.Where("id = ?", int(id)).Find(&result)
 
 	if result.ID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Message: "Bad Request"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
 	return c.JSON(result)
 }
@@ -31,27 +36,27 @@ func GetMe(c *fiber.Ctx) error {
 func ConfirmOTP(c *fiber.Ctx) error {
 	otp := c.Params("otp")
 
-	var result OTP
-	db.Where("code = ?", otp).Find(&result)
+	var result database.OTP
+	database.DB.Where("code = ?", otp).Find(&result)
 
 	if result.ID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "OTP is invalid.",
 		})
 	}
 
-	db.Where("code = ?", otp).Delete(&OTP{})
+	database.DB.Where("code = ?", otp).Delete(&database.OTP{})
 
-	var res User
-	db.Where("userid = ?", result.Userid).Find(&res)
+	var res database.User
+	database.DB.Where("userid = ?", result.Userid).Find(&res)
 
 	// if user does not exist
 	if res.ID == 0 {
-		var newUser = User{Userid: result.Userid, Username: "", PublicKey: ""}
-		db.Create(&newUser)
+		var newUser = database.User{Userid: result.Userid, Username: "", PublicKey: ""}
+		database.DB.Create(&newUser)
 
-		token, _ := GenerateToken(newUser.ID)
-		var response = ConfirmResponse{
+		token, _ := utils.GenerateToken(newUser.ID)
+		var response = response.Confirm{
 			Token:     token,
 			ID:        newUser.ID,
 			Userid:    newUser.Userid,
@@ -61,9 +66,9 @@ func ConfirmOTP(c *fiber.Ctx) error {
 		return c.JSON(response)
 	}
 
-	token, _ := GenerateToken(res.ID)
+	token, _ := utils.GenerateToken(res.ID)
 
-	var response = ConfirmResponse{
+	var response = response.Confirm{
 		Token:     token,
 		ID:        res.ID,
 		Userid:    res.Userid,
@@ -77,7 +82,7 @@ func ConfirmOTP(c *fiber.Ctx) error {
 func SetUsername(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
 
-	var body SetUsernameRequest
+	var body request.SetUsername
 
 	if err := c.BodyParser(&body); err != nil {
 		return err
@@ -86,24 +91,24 @@ func SetUsername(c *fiber.Ctx) error {
 	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", body.Username)
 
 	if !matched {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "Username is invalid",
 		})
 	}
 
-	var res User
-	db.Model(&User{}).Where("username = ?", body.Username).Find(&res)
+	var res database.User
+	database.DB.Model(&database.User{}).Where("username = ?", body.Username).Find(&res)
 
 	if res.ID != 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "Username is duplicate",
 		})
 	}
 
-	var result User
-	db.Model(&result).Where("id = ?", int(id)).Update("username", body.Username)
+	var result database.User
+	database.DB.Model(&result).Where("id = ?", int(id)).Update("username", body.Username)
 
-	return c.JSON(SetUsernameResponse{
+	return c.JSON(response.SetUsername{
 		Username: body.Username,
 		Message:  "Username set successfully",
 	})
@@ -111,22 +116,22 @@ func SetUsername(c *fiber.Ctx) error {
 
 func SetPublicKey(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
-	var body SetPublicKeyRequest
+	var body request.SetPublicKey
 
 	if err := c.BodyParser(&body); err != nil {
 		return err
 	}
 
 	if body.PublicKey == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "Public key is empty",
 		})
 	}
 
-	var result User
-	db.Model(&result).Where("id = ?", id).Update("public_key", body.PublicKey)
+	var result database.User
+	database.DB.Model(&result).Where("id = ?", id).Update("public_key", body.PublicKey)
 
-	return c.JSON(SetPublicKeyResponse{
+	return c.JSON(response.SetPublicKey{
 		PublicKey: body.PublicKey,
 		Message:   "Public key set successfully",
 	})
@@ -138,21 +143,21 @@ func GetProfile(c *fiber.Ctx) error {
 	matched, _ := regexp.MatchString("^[a-zA-Z]{1}[a-zA-Z0-9]{4,}$", username)
 
 	if !matched {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "Username is invalid",
 		})
 	}
 
-	var result User
-	db.Where("username = ?", username).Find(&result)
+	var result database.User
+	database.DB.Where("username = ?", username).Find(&result)
 
 	if result.ID == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{
+		return c.Status(fiber.StatusNotFound).JSON(response.Error{
 			Message: "User Not found",
 		})
 	}
 
-	return c.JSON(GetProfileResponse{
+	return c.JSON(response.GetProfile{
 		ID:        result.ID,
 		Username:  result.Username,
 		PublicKey: result.PublicKey,
@@ -162,7 +167,7 @@ func GetProfile(c *fiber.Ctx) error {
 func SendMessage(c *fiber.Ctx) error {
 	URL := os.Getenv("URL")
 
-	var body SendMessageRequest
+	var body request.SendMessage
 
 	if err := c.BodyParser(&body); err != nil {
 		return err
@@ -171,17 +176,17 @@ func SendMessage(c *fiber.Ctx) error {
 	matched, _ := regexp.MatchString("^[0-9]*$", fmt.Sprintf("%v", body.Id))
 
 	if !matched || len(body.Message) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{Message: "Bad Request"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
 
-	var result User
-	db.Where("id = ?", body.Id).Find(&result)
+	var result database.User
+	database.DB.Where("id = ?", body.Id).Find(&result)
 
 	if result.ID == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{Message: "User not found"})
+		return c.Status(fiber.StatusNotFound).JSON(response.Error{Message: "User not found"})
 	}
 
-	db.Create(&Message{Message: body.Message, UserId: body.Id, Time: time.Now()})
+	database.DB.Create(&database.Message{Message: body.Message, UserId: body.Id, Time: time.Now()})
 
 	// send alarm by telegram bot
 	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
@@ -194,16 +199,16 @@ func SendMessage(c *fiber.Ctx) error {
 		),
 	)
 
-	bot.Send(msg)
+	telegram.Bot.Send(msg)
 
-	return c.JSON(SendMessageResponse{Message: "The message was sent"})
+	return c.JSON(response.SendMessage{Message: "The message was sent"})
 }
 
 func GetMessages(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
 
-	var result []Message
-	db.Where("user_id = ?", int64(id)).Find(&result)
+	var result []database.Message
+	database.DB.Where("user_id = ?", int64(id)).Find(&result)
 
 	return c.JSON(result)
 }

@@ -1,10 +1,10 @@
-package main
+package response
 
-type ErrorResponse struct {
+type Error struct {
 	Message string `json:"message"`
 }
 
-type ConfirmResponse struct {
+type Confirm struct {
 	Token     string `json:"token"`
 	ID        int64  `json:"id"`
 	Userid    int64  `json:"userid"`
@@ -12,22 +12,22 @@ type ConfirmResponse struct {
 	PublicKey string `json:"publickey"`
 }
 
-type SetUsernameResponse struct {
+type SetUsername struct {
 	Username string `json:"username"`
 	Message  string `json:"message"`
 }
 
-type SetPublicKeyResponse struct {
+type SetPublicKey struct {
 	PublicKey string `json:"public_key"`
 	Message   string `json:"message"`
 }
 
-type GetProfileResponse struct {
+type GetProfile struct {
 	ID        int64  `json:"id"`
 	Username  string `json:"username"`
 	PublicKey string `json:"public_key"`
 }
 
-type SendMessageResponse struct {
+type SendMessage struct {
 	Message string `json:"message"`
 }
