@@ -9,13 +9,13 @@ import (
 
 var Bot *tgbotapi.BotAPI
 
-func InitBot() (tgbotapi.UpdatesChannel, error) {
+func InitBot() tgbotapi.UpdatesChannel {
 
 	var err error
 	Bot, err = tgbotapi.NewBotAPI(configs.BotToken)
 
 	if err != nil {
-		return nil, err
+		panic("telegram bot connection failed.")
 	}
 
 	Bot.Debug = true
@@ -27,5 +27,5 @@ func InitBot() (tgbotapi.UpdatesChannel, error) {
 
 	updates := Bot.GetUpdatesChan(u)
 
-	return updates, nil
+	return updates
 }

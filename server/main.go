@@ -17,7 +17,6 @@ import (
 const ADMIN_ID = 1152107887
 
 func main() {
-
 	configs.LoadConfigs()
 
 	app := fiber.New()
@@ -28,11 +27,7 @@ func main() {
 
 	database.Migration()
 
-	updates, err := telegram.InitBot()
-
-	if err != nil {
-		panic("telegram bot connection failed.")
-	}
+	updates := telegram.InitBot()
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
