@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Telegram from '@/components/icons/Telegram.vue'
+import TelegramIcon from '@/components/icons/Telegram.vue'
 </script>
 
 <template>
@@ -10,8 +10,8 @@ import Telegram from '@/components/icons/Telegram.vue'
         href="https://telegram.me/nashenase2ebot?start=otp"
         target="_blank"
       >
-        Start Our Telegram Bot
-        <Telegram class="ml-2" size="24" color="white" />
+        Connect to telegram
+        <TelegramIcon class="ml-2" size="24" color="white" />
       </a>
     </div>
   </div>

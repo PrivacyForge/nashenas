@@ -1,5 +1,6 @@
 server/.env
 server/*.db
+server/database/*.db
 node_modules
 .env
 .prod.env

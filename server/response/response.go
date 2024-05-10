@@ -31,3 +31,10 @@ type GetProfile struct {
 type SendMessage struct {
 	Message string `json:"message"`
 }
+
+type GetMe struct {
+	ID        int64  `json:"id"`
+	Username  string `json:"username"`
+	Userid    int64  `json:"userid"`
+	PublicKey string `json:"public_key"`
+}

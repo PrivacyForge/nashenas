@@ -30,7 +30,12 @@ func GetMe(c *fiber.Ctx) error {
 	if result.ID == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
-	return c.JSON(result)
+	return c.JSON(response.GetMe{
+		ID:        result.ID,
+		Username:  result.Username,
+		Userid:    result.Userid,
+		PublicKey: result.PublicKey,
+	})
 }
 
 func ConfirmOTP(c *fiber.Ctx) error {
@@ -100,9 +105,15 @@ func SetUsername(c *fiber.Ctx) error {
 	database.DB.Model(&database.User{}).Where("username = ?", body.Username).Find(&res)
 
 	if res.ID != 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
-			Message: "Username is duplicate",
-		})
+		if res.ID == int64(id) {
+			return c.Status(fiber.StatusOK).JSON(response.Error{
+				Message: "This username was already set for you",
+			})
+		} else {
+			return c.Status(fiber.StatusBadRequest).JSON(response.Error{
+				Message: "Username is duplicate",
+			})
+		}
 	}
 
 	var result database.User

@@ -2,19 +2,19 @@
 import { computed, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import forge from 'node-forge'
-import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 
 import CopyText from '@/components/CopyText.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 const hasKeys = ref(
   !!localStorage.getItem('private_key') && !!localStorage.getItem('public_key')
 )
 const loading = ref(false)
 
-const myLink = computed(() => `${location.origin}/@${authStore.user.Username}`)
+const myLink = computed(() => `${location.origin}/@${userStore.user.username}`)
 
 async function generateKeyPair() {
   const keyPair = await forge.pki.rsa.generateKeyPair({

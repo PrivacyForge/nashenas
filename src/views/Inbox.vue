@@ -3,12 +3,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Message from '@/components/Message.vue'
 import axios from '@/plugins/axios'
-import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
-if (!authStore.user.PublicKey) router.push({ name: 'setup' })
+if (!userStore.user.publicKey) router.push({ name: 'setup' })
 
 const messages = ref<any[]>([])
 

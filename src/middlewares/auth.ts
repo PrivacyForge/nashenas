@@ -1,21 +1,21 @@
 import axios from '@/plugins/axios'
-import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 import type { NavigationGuard } from 'vue-router'
 
 const middleware: NavigationGuard = async (to, from, next) => {
-  const authStore = useAuthStore()
-  if (authStore.isAuth) return next()
+  const userStore = useUserStore()
+  if (userStore.isAuth) return next()
 
   await axios
     .get('/me')
     .then(({ data }) => {
-      authStore.user.ID = data.ID
-      authStore.user.Userid = data.Userid
-      authStore.user.Username = data.Username
-      authStore.user.PublicKey = data.PublicKey
-      authStore.isAuth = true
+      userStore.user.id = data.id
+      userStore.user.userid = data.userid
+      userStore.user.username = data.username
+      userStore.user.publicKey = data.public_key
+      userStore.isAuth = true
 
-      data.PublicKey ? next() : next({ name: 'setup' })
+      data.public_key ? next() : next({ name: 'setup' })
     })
     .catch(() => {
       next({ name: 'auth' })

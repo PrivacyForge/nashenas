@@ -40,8 +40,9 @@ function submit() {
 
   setTimeout(() => {
     axios
-      .post(`/send-message?id=${user.id}`, {
+      .post(`/send-message`, {
         message: forge.util.bytesToHex(encryptedMsg),
+        id: user.id,
       })
       .then(() => {
         message.value = ''
@@ -56,10 +57,10 @@ function submit() {
 onMounted(() => {
   setTimeout(() => {
     axios
-      .get(`/get-profile?username=${username}`)
+      .get(`/profile/${username}`)
       .then((response) => {
-        user.publicKey = response.data.PublicKey
-        user.id = response.data.ID
+        user.publicKey = response.data.public_key
+        user.id = response.data.id
       })
       .catch((error) => {
         notFoundUser.value = true

@@ -2,9 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/plugins/axios'
-import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -16,21 +16,21 @@ const code = route.params.code
 onMounted(() => {
   setTimeout(() => {
     axios
-      .get(`/confirm?code=${code}`)
+      .get(`/confirm/${code}`)
       .then(({ data }) => {
         localStorage.setItem('token', data.token)
 
-        authStore.user.ID = data.id
-        authStore.user.PublicKey = data.publickey
-        authStore.user.Username = data.username
-        authStore.user.Userid = data.userid
+        userStore.user.id = data.id
+        userStore.user.publicKey = data.public_key
+        userStore.user.username = data.username
+        userStore.user.userid = data.userid
 
-        authStore.isAuth = true
+        userStore.isAuth = true
 
         router.push({ name: 'setup' })
       })
       .catch((error) => {
-        errorMessage.value = error.response.data
+        errorMessage.value = error.response.data.message
       })
       .finally(() => {
         loading.value = false
