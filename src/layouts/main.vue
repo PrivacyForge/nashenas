@@ -6,8 +6,11 @@ import { useUserStore } from '@/stores/user'
 
 import CopyText from '@/components/CopyText.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
+import axios from '@/plugins/axios'
 
 const userStore = useUserStore()
+
+const FileInput = ref<any>()
 
 const hasKeys = ref(
   !!localStorage.getItem('private_key') && !!localStorage.getItem('public_key')
@@ -35,6 +38,23 @@ async function generateKeyPair() {
   setTimeout(() => {
     loading.value = false
   }, 2000)
+}
+
+function importKeys(event: Event) {
+  // @ts-ignore
+  const file = event.target!.files[0]
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const rawData = e.target!.result as string
+    const privateKey = rawData.split('divide')[0]
+    const publicKey = rawData.split('divide')[1].slice(1) // send to server
+
+    localStorage.setItem('private_key', privateKey)
+    axios.post('/set-key', { public_key: publicKey }).then(() => {
+      userStore.user.publicKey = publicKey
+    })
+  }
+  reader.readAsText(file)
 }
 
 function exportKeys() {
@@ -89,12 +109,26 @@ function exportKeys() {
             Your keys are set and you are safe.
           </p>
           <div class="grid grid-cols-1 gap-y-2">
-            <button
-              class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-              @click="exportKeys"
-            >
-              Export
-            </button>
+            <div class="grid grid-cols-2 gap-x-2">
+              <button
+                class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
+                @click="exportKeys"
+              >
+                Export
+              </button>
+              <button
+                class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
+                @click="FileInput.click()"
+              >
+                Import
+              </button>
+              <input
+                ref="FileInput"
+                type="file"
+                class="hidden"
+                @change="importKeys"
+              />
+            </div>
             <button
               class="text-[#119af5] py-2 rounded-md font-semibold"
               @click="generateKeyPair"
