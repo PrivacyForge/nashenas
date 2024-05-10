@@ -31,13 +31,20 @@ async function generateKeyPair() {
   localStorage.setItem('private_key', privateKey)
   localStorage.setItem('public_key', publicKey)
 
-  hasKeys.value = true
-
   loading.value = true
 
-  setTimeout(() => {
-    loading.value = false
-  }, 2000)
+  axios
+    .post('/set-key', { public_key: publicKey })
+    .then(() => {
+      localStorage.setItem('private_key', privateKey)
+      localStorage.setItem('public_key', publicKey)
+
+      userStore.user.publicKey = publicKey
+      hasKeys.value = true
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 
 function importKeys(event: Event) {
@@ -50,6 +57,7 @@ function importKeys(event: Event) {
     const publicKey = rawData.split('divide')[1].slice(1) // send to server
 
     localStorage.setItem('private_key', privateKey)
+    localStorage.setItem('public_key', publicKey)
     axios.post('/set-key', { public_key: publicKey }).then(() => {
       userStore.user.publicKey = publicKey
     })
