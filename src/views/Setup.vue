@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import forge from 'node-forge'
+
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
+import { generateKeyPair } from '@/cryptography/RSA'
 
 const userStore = useUserStore()
 
@@ -16,19 +18,13 @@ const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
 >('set-username')
 
-async function generateKeyPair() {
-  const keyPair = await forge.pki.rsa.generateKeyPair({
-    bits: 512,
-    workers: 2,
-  })
+async function generateKeys() {
+  loading.value = true
 
-  const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey)
-  const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey)
+  const { privateKey, publicKey } = await generateKeyPair()
 
   localStorage.setItem('private_key', privateKey)
   localStorage.setItem('public_key', publicKey)
-
-  loading.value = true
 
   setTimeout(() => {
     axios
@@ -40,7 +36,7 @@ async function generateKeyPair() {
       .finally(() => {
         loading.value = false
       })
-  }, 2000)
+  }, 1500)
 }
 
 function exportKeys() {
@@ -71,6 +67,8 @@ function importKeys(event: Event) {
     const publicKey = rawData.split('divide')[1].slice(1) // send to server
 
     localStorage.setItem('private_key', privateKey)
+    localStorage.setItem('public_key', publicKey)
+    
     axios.post('/set-key', { public_key: publicKey }).then(() => {
       state.value = 'key-upload'
       userStore.user.publicKey = publicKey
@@ -123,7 +121,7 @@ function usernameSubmit() {
         <div class="grid grid-cols-1 gap-y-2">
           <button
             class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-            @click="generateKeyPair"
+            @click="generateKeys"
           >
             No, Please Generate.
           </button>

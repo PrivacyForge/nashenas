@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import { RouterView } from 'vue-router'
-import forge from 'node-forge'
+
+import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
+import { generateKeyPair } from '@/cryptography/RSA'
 
 import CopyText from '@/components/CopyText.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
-import axios from '@/plugins/axios'
 
 const userStore = useUserStore()
 
@@ -19,17 +20,8 @@ const loading = ref(false)
 
 const myLink = computed(() => `${location.origin}/@${userStore.user.username}`)
 
-async function generateKeyPair() {
-  const keyPair = await forge.pki.rsa.generateKeyPair({
-    bits: 512,
-    workers: 2,
-  })
-
-  const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey)
-  const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey)
-
-  localStorage.setItem('private_key', privateKey)
-  localStorage.setItem('public_key', publicKey)
+async function generateKeys() {
+  const { privateKey, publicKey } = await generateKeyPair()
 
   loading.value = true
 
@@ -139,7 +131,7 @@ function exportKeys() {
             </div>
             <button
               class="text-[#119af5] py-2 rounded-md font-semibold"
-              @click="generateKeyPair"
+              @click="generateKeys"
             >
               I want to regenerate my keys.
             </button>
@@ -152,7 +144,7 @@ function exportKeys() {
           <div class="grid grid-cols-1 gap-y-2">
             <button
               class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-              @click="generateKeyPair"
+              @click="generateKeys"
             >
               Generate
             </button>
