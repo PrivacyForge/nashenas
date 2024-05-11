@@ -2,7 +2,9 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
+
 import axios from '@/plugins/axios'
+import { encrypt } from '@/cryptography'
 
 import TelegramIcon from '@/components/icons/Telegram.vue'
 import GithubIcon from '@/components/icons/Github.vue'
@@ -29,19 +31,17 @@ const user = reactive<{
   publicKey: null,
 })
 
-function submit() {
+async function submit() {
   if (message.value === '') return
 
-  const encryptedMsg = forge.pki
-    .publicKeyFromPem(user.publicKey!)
-    .encrypt(message.value)
+  const encryptedMsg = await encrypt(message.value, user.publicKey!)
 
   submitLoading.value = true
 
   setTimeout(() => {
     axios
       .post(`/send-message`, {
-        message: forge.util.bytesToHex(encryptedMsg),
+        message: encryptedMsg,
         id: user.id,
       })
       .then(() => {

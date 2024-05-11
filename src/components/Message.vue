@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import forge from 'node-forge'
+import { decrypt } from '@/cryptography'
 
 import ReplyIcon from '@/components/icons/Reply.vue'
 
@@ -10,18 +10,11 @@ defineProps<{
 }>()
 
 const vDecrypt = {
-  mounted: (el: HTMLParagraphElement) => {
+  mounted: async (el: HTMLParagraphElement) => {
     try {
-      // const publicKey = localStorage.getItem('public_key')
       const privateKey = localStorage.getItem('private_key')
 
-      // const encryptedMsg = forge.pki
-      //   .publicKeyFromPem(publicKey!)
-      //   .encrypt("hello Yasha!")
-
-      const decrypted = forge.pki
-        .privateKeyFromPem(privateKey!)
-        .decrypt(forge.util.hexToBytes(el.innerText))
+      const decrypted = await decrypt(el.innerText, privateKey!)
 
       el.innerText = decrypted
     } catch (error) {
