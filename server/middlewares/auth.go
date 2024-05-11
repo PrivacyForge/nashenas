@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"os"
 	"strings"
 
+	"github.com/PrivacyForge/nashenas/configs"
 	"github.com/PrivacyForge/nashenas/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -25,10 +25,8 @@ func BearerToken(c *fiber.Ctx) error {
 		})
 	}
 
-	SECRET := os.Getenv("SECRET")
-
 	token, err := jwt.Parse(tokenParts[1], func(token *jwt.Token) (interface{}, error) {
-		return []byte(SECRET), nil
+		return []byte(configs.Secret), nil
 	})
 
 	if err != nil {

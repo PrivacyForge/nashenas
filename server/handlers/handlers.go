@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"time"
 
+	"github.com/PrivacyForge/nashenas/configs"
 	"github.com/PrivacyForge/nashenas/database"
 	"github.com/PrivacyForge/nashenas/request"
 	"github.com/PrivacyForge/nashenas/response"
@@ -176,8 +176,6 @@ func GetProfile(c *fiber.Ctx) error {
 }
 
 func SendMessage(c *fiber.Ctx) error {
-	URL := os.Getenv("URL")
-
 	var body request.SendMessage
 
 	if err := c.BodyParser(&body); err != nil {
@@ -202,7 +200,7 @@ func SendMessage(c *fiber.Ctx) error {
 	// send alarm by telegram bot
 	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
 
-	url := URL + "/inbox"
+	url := configs.Url + "/inbox"
 
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
