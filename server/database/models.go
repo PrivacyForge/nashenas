@@ -8,23 +8,27 @@ import (
 
 type OTP struct {
 	gorm.Model
-	Userid   int64  `gorm:"size: 255"`
-	Username string `gorm:"size: 255"`
-	Code     string `gorm:"size: 255"`
+	TelegramUserid uint64 `gorm:"size: 255"`
+	Username       string `gorm:"size: 255"`
+	Code           string `gorm:"size: 255"`
 }
 
 type User struct {
 	gorm.Model
-	ID        int64  `gorm:"primaryKey"`
-	Userid    int64  `gorm:"size: 255"`
-	Username  string `gorm:"size: 255"`
-	PublicKey string `gorm:"size: 255"`
+	ID             uint64 `gorm:"primaryKey"`
+	TelegramUserid uint64 `gorm:"size: 255"`
+	Username       string `gorm:"size: 255"`
+	PublicKey      string `gorm:"size: 255"`
+	Messages       []Message
 }
 
 type Message struct {
 	gorm.Model
-	ID      int64     `gorm:"primaryKey"`
-	Message string    `gorm:"size: 255"`
-	UserId  int64     `gorm:"size: 255"`
-	Time    time.Time `gorm:"size: 255"`
+	ID       uint64    `gorm:"primaryKey"`
+	Content  string    `gorm:"not null"`
+	Time     time.Time `gorm:"size: 255"`
+	UserID   int64     `gorm:"not null"`
+	User     User      `gorm:"foreignKey:UserID"`
+	ParentID uint64    `gorm:"default:null"`
+	Replies  []Message `gorm:"foreignKey:ParentID"`
 }

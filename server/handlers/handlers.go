@@ -33,7 +33,7 @@ func GetMe(c *fiber.Ctx) error {
 	return c.JSON(response.GetMe{
 		ID:        result.ID,
 		Username:  result.Username,
-		Userid:    result.Userid,
+		Userid:    result.TelegramUserid,
 		PublicKey: result.PublicKey,
 	})
 }
@@ -53,18 +53,18 @@ func ConfirmOTP(c *fiber.Ctx) error {
 	database.DB.Where("code = ?", otp).Delete(&database.OTP{})
 
 	var res database.User
-	database.DB.Where("userid = ?", result.Userid).Find(&res)
+	database.DB.Where("telegram_userid = ?", result.TelegramUserid).Find(&res)
 
 	// if user does not exist
 	if res.ID == 0 {
-		var newUser = database.User{Userid: result.Userid, Username: "", PublicKey: ""}
+		var newUser = database.User{TelegramUserid: result.TelegramUserid, Username: "", PublicKey: ""}
 		database.DB.Create(&newUser)
 
 		token, _ := utils.GenerateToken(newUser.ID)
 		var response = response.Confirm{
 			Token:     token,
 			ID:        newUser.ID,
-			Userid:    newUser.Userid,
+			Userid:    newUser.TelegramUserid,
 			Username:  newUser.Username,
 			PublicKey: newUser.PublicKey,
 		}
@@ -76,7 +76,7 @@ func ConfirmOTP(c *fiber.Ctx) error {
 	var response = response.Confirm{
 		Token:     token,
 		ID:        res.ID,
-		Userid:    res.Userid,
+		Userid:    res.TelegramUserid,
 		Username:  res.Username,
 		PublicKey: res.PublicKey,
 	}
@@ -105,7 +105,7 @@ func SetUsername(c *fiber.Ctx) error {
 	database.DB.Model(&database.User{}).Where("username = ?", body.Username).Find(&res)
 
 	if res.ID != 0 {
-		if res.ID == int64(id) {
+		if res.ID == uint64(id) {
 			return c.Status(fiber.StatusOK).JSON(response.Error{
 				Message: "This username was already set for you",
 			})
@@ -195,10 +195,10 @@ func SendMessage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(response.Error{Message: "User not found"})
 	}
 
-	database.DB.Create(&database.Message{Message: body.Message, UserId: body.Id, Time: time.Now()})
+	database.DB.Create(&database.Message{Content: body.Message, UserID: body.Id, Time: time.Now()})
 
 	// send alarm by telegram bot
-	msg := tgbotapi.NewMessage(result.Userid, "You received a new message.")
+	msg := tgbotapi.NewMessage(int64(result.TelegramUserid), "You received a new message.")
 
 	url := configs.Url + "/inbox"
 

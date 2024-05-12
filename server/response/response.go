@@ -6,8 +6,8 @@ type Error struct {
 
 type Confirm struct {
 	Token     string `json:"token"`
-	ID        int64  `json:"id"`
-	Userid    int64  `json:"userid"`
+	ID        uint64 `json:"id"`
+	Userid    uint64  `json:"userid"`
 	Username  string `json:"username"`
 	PublicKey string `json:"publickey"`
 }
@@ -23,7 +23,7 @@ type SetPublicKey struct {
 }
 
 type GetProfile struct {
-	ID        int64  `json:"id"`
+	ID        uint64  `json:"id"`
 	Username  string `json:"username"`
 	PublicKey string `json:"public_key"`
 }
@@ -33,8 +33,8 @@ type SendMessage struct {
 }
 
 type GetMe struct {
-	ID        int64  `json:"id"`
+	ID        uint64 `json:"id"`
 	Username  string `json:"username"`
-	Userid    int64  `json:"userid"`
+	Userid    uint64 `json:"userid"`
 	PublicKey string `json:"public_key"`
 }

@@ -25,7 +25,7 @@ axios.get('/get-messages').then((response) => {
       <Message
         v-for="(m, i) in messages"
         :key="i"
-        :text="m.Message"
+        :text="m.Content"
         :time="m.Time"
         :mark="false"
       />

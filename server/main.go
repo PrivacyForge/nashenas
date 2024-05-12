@@ -48,12 +48,12 @@ func main() {
 			query := strings.Split(update.Message.Text, " ")
 
 			if len(query) > 1 && query[1] == "otp" {
-				database.DB.Where("userid = ?", update.Message.Chat.ID).Delete(&database.OTP{})
+				database.DB.Where("telegram_userid = ?", update.Message.Chat.ID).Delete(&database.OTP{})
 				code := uuid.NewString()
 				database.DB.Create(&database.OTP{
-					Code:     code,
-					Userid:   update.Message.Chat.ID,
-					Username: update.Message.From.UserName,
+					Code:           code,
+					TelegramUserid: uint64(update.Message.Chat.ID),
+					Username:       update.Message.From.UserName,
 				})
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 					"Click button below to confirm your account.")
