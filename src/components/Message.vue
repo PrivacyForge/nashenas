@@ -6,6 +6,7 @@ import { decrypt, encrypt } from '@/cryptography'
 
 import ReplyIcon from '@/components/icons/Reply.vue'
 import Button from '@/components/Button.vue'
+import Time from '@/components/Time.vue'
 
 const props = defineProps<{
   id: number
@@ -80,8 +81,15 @@ function Submit() {
     class="flex flex-col bg-[#ffffff] p-4 rounded-lg shadow-sm"
     :class="mark && ['border-2 border-[#119af5]']"
   >
-    <p class="text-gray-400 text-end">{{ time }}</p>
-    <p v-if="quote?.content" class="border-l-4 border-l-black pl-2 py-2" quote="true" v-decrypt>{{ quote.content }}</p>
+    <Time :value="time" class="text-gray-400 text-end"></Time>
+    <p
+      v-if="quote?.content"
+      class="border-l-4 border-l-black pl-2 py-2"
+      quote="true"
+      v-decrypt
+    >
+      {{ quote.content }}
+    </p>
     <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
     <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
       <div class="flex" @click="replaying = true">
