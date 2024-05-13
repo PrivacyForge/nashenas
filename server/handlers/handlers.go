@@ -273,11 +273,12 @@ func ReplayMessage(c *fiber.Ctx) error {
 	database.DB.Where("id = ?", body.MessageId).Find(&result)
 
 	database.DB.Create(&database.Message{
-		Content: body.Message,
-		FromID:  uint64(id.(float64)),
-		ToID:    result.FromID,
-		OwnerID: result.OwnerID,
-		Time:    time.Now()})
+		Content:  body.Message,
+		FromID:   uint64(id.(float64)),
+		ToID:     result.FromID,
+		OwnerID:  result.OwnerID,
+		ParentID: result.ID,
+		Time:     time.Now()})
 
 	return c.SendString("Ok")
 }
@@ -293,14 +294,18 @@ func GetMessages(c *fiber.Ctx) error {
 
 	for i := 0; i < len(result); i++ {
 		var owner bool = result[i].OwnerID == uint64(id)
-
 		if result[i].ParentID != 0 {
+			var res database.Message
+			database.DB.Where("id = ?", result[i].ParentID).Find(&res)
 			messages = append(messages, response.GetMessages{
 				ID:      result[i].ID,
 				Content: result[i].Content,
 				Time:    result[i].Time,
 				Owner:   owner,
-				Quote:   &response.Quote{},
+				Quote: &response.Quote{
+					ID:      res.ID,
+					Content: res.Content,
+				},
 			})
 		} else {
 			messages = append(messages, response.GetMessages{
