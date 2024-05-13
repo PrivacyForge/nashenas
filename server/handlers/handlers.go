@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/PrivacyForge/nashenas/configs"
@@ -141,18 +142,23 @@ func SetPublicKey(c *fiber.Ctx) error {
 		return err
 	}
 
-	if body.PublicKey == "" {
+	if body.ReceivePublicKey == "" || body.SendPublicKey == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
-			Message: "Public key is empty",
+			Message: "Public key fields are empty",
 		})
 	}
 
 	var result database.User
-	database.DB.Model(&result).Where("id = ?", id).Update("public_key", body.PublicKey)
+	database.DB.
+		Model(&result).
+		Where("id = ?", id).
+		Update("receive_public_key", body.ReceivePublicKey).
+		Update("send_public_key", body.SendPublicKey)
 
 	return c.JSON(response.SetPublicKey{
-		PublicKey: body.PublicKey,
-		Message:   "Public key set successfully",
+		ReceivePublicKey: body.ReceivePublicKey,
+		SendPublicKey:    body.SendPublicKey,
+		Message:          "Public key set successfully",
 	})
 }
 
@@ -214,15 +220,15 @@ func SendMessage(c *fiber.Ctx) error {
 	if isAnonymouse {
 		database.DB.Create(&database.Message{
 			Content: body.Message,
-			ToID:      body.Id,
-			OwnerID:   body.Id,
+			ToID:    body.Id,
+			OwnerID: body.Id,
 			Time:    time.Now()})
 	} else {
 		database.DB.Create(&database.Message{
 			Content: body.Message,
-			FromID:    uint64(id.(float64)),
-			ToID:      body.Id,
-			OwnerID:   body.Id,
+			FromID:  uint64(id.(float64)),
+			ToID:    body.Id,
+			OwnerID: body.Id,
 			Time:    time.Now()})
 	}
 
@@ -242,11 +248,71 @@ func SendMessage(c *fiber.Ctx) error {
 	return c.JSON(response.SendMessage{Message: "The message was sent"})
 }
 
+func GetPublicKey(c *fiber.Ctx) error {
+	messageId, _ := strconv.ParseInt(c.Params("id"), 10, 64)
+
+	var result database.Message
+	database.DB.Where("id = ?", uint64(messageId)).Find(&result)
+
+	var res database.User
+	database.DB.Where("id = ?", result.FromID).Find(&res)
+
+	return c.JSON(res.SendPublicKey)
+}
+
+func ReplayMessage(c *fiber.Ctx) error {
+	id := c.Locals("id")
+
+	var body request.ReplayMessage
+
+	if err := c.BodyParser(&body); err != nil {
+		return err
+	}
+
+	var result database.Message
+	database.DB.Where("id = ?", body.MessageId).Find(&result)
+
+	database.DB.Create(&database.Message{
+		Content: body.Message,
+		FromID:  uint64(id.(float64)),
+		ToID:    result.FromID,
+		OwnerID: result.OwnerID,
+		Time:    time.Now()})
+
+	return c.SendString("Ok")
+}
+
 func GetMessages(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
-	fmt.Println(id)
+
 	var result []database.Message
+
 	database.DB.Where("to_id = ?", uint64(id)).Find(&result)
 
-	return c.JSON(result)
+	var messages []response.GetMessages
+
+	for i := 0; i < len(result); i++ {
+		var owner bool = result[i].OwnerID == uint64(id)
+
+		if result[i].ParentID != 0 {
+			messages = append(messages, response.GetMessages{
+				ID:      result[i].ID,
+				Content: result[i].Content,
+				Time:    result[i].Time,
+				Owner:   owner,
+				Quote:   &response.Quote{},
+			})
+		} else {
+			messages = append(messages, response.GetMessages{
+				ID:      result[i].ID,
+				Content: result[i].Content,
+				Time:    result[i].Time,
+				Owner:   owner,
+				Quote:   nil,
+			})
+		}
+
+	}
+
+	return c.JSON(messages)
 }

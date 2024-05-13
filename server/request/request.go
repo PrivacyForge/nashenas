@@ -5,10 +5,16 @@ type SetUsername struct {
 }
 
 type SetPublicKey struct {
-	PublicKey string `json:"public_key"`
+	ReceivePublicKey string `json:"receive_public_key"`
+	SendPublicKey    string `json:"send_public_key"`
 }
 
 type SendMessage struct {
-	Id      uint64  `json:"id"`
+	Id      uint64 `json:"id"`
 	Message string `json:"message"`
+}
+
+type ReplayMessage struct {
+	MessageId uint64 `json:"message_id"`
+	Message   string `json:"message"`
 }

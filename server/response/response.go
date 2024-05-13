@@ -1,5 +1,7 @@
 package response
 
+import "time"
+
 type Error struct {
 	Message string `json:"message"`
 }
@@ -19,8 +21,9 @@ type SetUsername struct {
 }
 
 type SetPublicKey struct {
-	PublicKey string `json:"public_key"`
-	Message   string `json:"message"`
+	ReceivePublicKey string `json:"receive_public_key"`
+	SendPublicKey    string `json:"send_public_key"`
+	Message          string `json:"message"`
 }
 
 type GetProfile struct {
@@ -39,4 +42,17 @@ type GetMe struct {
 	Userid           uint64 `json:"userid"`
 	ReceivePublicKey string `json:"receive_public_key"`
 	SendPublicKey    string `json:"send_public_key"`
+}
+
+type Quote struct {
+	ID      uint64 `json:"id"`
+	Content string `json:"content"`
+}
+
+type GetMessages struct {
+	ID      uint64    `json:"id"`
+	Content string    `json:"content"`
+	Time    time.Time `json:"time"`
+	Owner   bool      `json:"owner"`
+	Quote   *Quote    `json:"quote,omitempty"`
 }

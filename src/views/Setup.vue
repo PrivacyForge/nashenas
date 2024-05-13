@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import forge from 'node-forge'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
 import { generateKeyPair } from '@/cryptography/RSA'
+import { generateKeysTemplate, extractKeys } from '@/utils'
 
 const userStore = useUserStore()
 
@@ -21,17 +21,30 @@ const state = ref<
 async function generateKeys() {
   loading.value = true
 
-  const { privateKey, publicKey } = await generateKeyPair()
+  let receivePublicKey: string, sendPublicKey: string
 
-  localStorage.setItem('private_key', privateKey)
-  localStorage.setItem('public_key', publicKey)
+  await generateKeyPair().then(({ privateKey, publicKey }) => {
+    localStorage.setItem('receive_private_key', privateKey)
+    localStorage.setItem('receive_public_key', publicKey)
+    receivePublicKey = publicKey
+  })
+
+  await generateKeyPair().then(({ privateKey, publicKey }) => {
+    localStorage.setItem('send_private_key', privateKey)
+    localStorage.setItem('send_public_key', publicKey)
+    sendPublicKey = publicKey
+  })
 
   setTimeout(() => {
     axios
-      .post('/set-key', { public_key: publicKey })
-      .then(() => {
+      .post('/set-key', {
+        receive_public_key: receivePublicKey,
+        send_public_key: sendPublicKey,
+      })
+      .then(({ data }) => {
         state.value = 'key-generation'
-        userStore.user.publicKey = publicKey
+        userStore.user.receivePublicKey = data.receive_public_key
+        userStore.user.sendPublicKey = data.send_public_key
       })
       .finally(() => {
         loading.value = false
@@ -42,9 +55,15 @@ async function generateKeys() {
 function exportKeys() {
   const link = document.createElement('a')
 
-  const content = `${localStorage.getItem(
-    'private_key'
-  )}divide\n${localStorage.getItem('public_key')}`
+  const receiveKeys = []
+  receiveKeys[0] = localStorage.getItem('receive_private_key')!
+  receiveKeys[1] = localStorage.getItem('receive_public_key')!
+
+  const sendKeys = []
+  sendKeys[0] = localStorage.getItem('send_private_key')!
+  sendKeys[1] = localStorage.getItem('send_public_key')!
+
+  const content = generateKeysTemplate(receiveKeys, sendKeys)
 
   const file = new Blob([content], { type: 'text/plain' })
 
@@ -63,16 +82,30 @@ function importKeys(event: Event) {
   const reader = new FileReader()
   reader.onload = (e) => {
     const rawData = e.target!.result as string
-    const privateKey = rawData.split('divide')[0]
-    const publicKey = rawData.split('divide')[1].slice(1) // send to server
 
-    localStorage.setItem('private_key', privateKey)
-    localStorage.setItem('public_key', publicKey)
-    
-    axios.post('/set-key', { public_key: publicKey }).then(() => {
-      state.value = 'key-upload'
-      userStore.user.publicKey = publicKey
-    })
+    const {
+      receivePrivateKey,
+      receivePublicKey,
+      sendPrivateKey,
+      sendPublicKey,
+    } = extractKeys(rawData)
+
+    localStorage.setItem('receive_private_key', receivePrivateKey)
+    localStorage.setItem('receive_public_key', receivePublicKey)
+
+    localStorage.setItem('send_private_key', sendPrivateKey)
+    localStorage.setItem('send_public_key', sendPublicKey)
+
+    axios
+      .post('/set-key', {
+        receive_public_key: receivePublicKey,
+        send_public_key: sendPublicKey,
+      })
+      .then(({ data }) => {
+        state.value = 'key-upload'
+        userStore.user.receivePublicKey = data.receive_public_key
+        userStore.user.sendPublicKey = data.send_public_key
+      })
   }
   reader.readAsText(file)
 }

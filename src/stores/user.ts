@@ -5,7 +5,8 @@ interface IUser {
   id: number
   userid: number
   username: string
-  publicKey: string
+  receivePublicKey: string
+  sendPublicKey: string
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -14,7 +15,8 @@ export const useUserStore = defineStore('user', () => {
     id: 0,
     userid: 0,
     username: '',
-    publicKey: '',
+    receivePublicKey: '',
+    sendPublicKey: '',
   })
 
   return { isAuth, user }

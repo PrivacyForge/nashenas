@@ -1,14 +1,16 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import forge from 'node-forge'
 
 import axios from '@/plugins/axios'
 import { encrypt } from '@/cryptography'
+import { useUserStore } from '@/stores/user'
 
 import TelegramIcon from '@/components/icons/Telegram.vue'
 import GithubIcon from '@/components/icons/Github.vue'
 import Button from '@/components/Button.vue'
+
+const userStore = useUserStore()
 
 const route = useRoute()
 
@@ -33,8 +35,17 @@ const user = reactive<{
 
 async function submit() {
   if (message.value === '') return
+  
+  let myPublicKey
+  if (userStore.isAuth) {
+    myPublicKey = localStorage.getItem('public_key')
+  }
 
-  const encryptedMsg = await encrypt(message.value, user.publicKey!)
+  const encryptedMsg = await encrypt(
+    message.value,
+    user.publicKey!,
+    myPublicKey!
+  )
 
   submitLoading.value = true
 

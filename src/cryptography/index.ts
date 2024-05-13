@@ -1,12 +1,23 @@
 import * as AES from './AES'
 import * as RSA from './RSA'
 
-async function encrypt(message: string, publicKey: string) {
+async function encrypt(
+  message: string,
+  destPubKey: string,
+  srcPubKey?: string
+) {
   const key = await AES.generateRandomKey()
 
-  const encryptedKey = await RSA.encrypt(key, publicKey)
+  const destEncryptedKey = await RSA.encrypt(key, destPubKey)
+
   const encryptedMsg = await AES.encrypt(message, key)
-  return `${encryptedKey}-${encryptedMsg}`
+
+  if (srcPubKey) {
+    const srcEncryptedKey = await RSA.encrypt(key, srcPubKey)
+    return `${destEncryptedKey}-${encryptedMsg}-${srcEncryptedKey}`
+  }
+
+  return `${destEncryptedKey}-${encryptedMsg}`
 }
 
 async function decrypt(message: string, privateKey: string) {
