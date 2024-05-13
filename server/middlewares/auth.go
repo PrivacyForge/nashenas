@@ -9,9 +9,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func BearerToken(c *fiber.Ctx) error {
+func OptionalBearerToken(c *fiber.Ctx) error {
+	return BearerToken(c, true)
+}
+
+func RequiredBearerToken(c *fiber.Ctx) error {
+	return BearerToken(c, false)
+}
+
+func BearerToken(c *fiber.Ctx, optional bool) error {
 	authHeader := c.Get("Authorization")
-	if authHeader == "" {
+
+	if optional && authHeader == "" {
+		return c.Next()
+	} else if authHeader == "" && !optional {
 		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
 			Message: "Unauthorized",
 		})

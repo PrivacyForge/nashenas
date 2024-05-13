@@ -9,6 +9,6 @@ type SetPublicKey struct {
 }
 
 type SendMessage struct {
-	Id      int64  `json:"id"`
+	Id      uint64  `json:"id"`
 	Message string `json:"message"`
 }

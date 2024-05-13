@@ -7,14 +7,14 @@ import (
 )
 
 func DefineRoutes(app *fiber.App) *fiber.App {
-	app.Get("/", middlewares.BearerToken, handlers.HelloWorld)
-	app.Get("/me", middlewares.BearerToken, handlers.GetMe)
-	app.Post("/set-username", middlewares.BearerToken, handlers.SetUsername)
-	app.Post("/set-key", middlewares.BearerToken, handlers.SetPublicKey)
-	app.Get("/get-messages", middlewares.BearerToken, handlers.GetMessages)
-	app.Post("/send-message", handlers.SendMessage)
+	app.Get("/", middlewares.RequiredBearerToken, handlers.HelloWorld)
+	app.Get("/me", middlewares.RequiredBearerToken, handlers.GetMe)
+	app.Get("/get-messages", middlewares.RequiredBearerToken, handlers.GetMessages)
 	app.Get("/profile/:username", handlers.GetProfile)
 	app.Get("/confirm/:otp", handlers.ConfirmOTP)
+	app.Post("/set-username", middlewares.RequiredBearerToken, handlers.SetUsername)
+	app.Post("/set-key", middlewares.RequiredBearerToken, handlers.SetPublicKey)
+	app.Post("/send-message", middlewares.OptionalBearerToken, handlers.SendMessage)
 
 	return app
 }

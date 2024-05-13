@@ -31,10 +31,11 @@ func GetMe(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
 	return c.JSON(response.GetMe{
-		ID:        result.ID,
-		Username:  result.Username,
-		Userid:    result.TelegramUserid,
-		PublicKey: result.PublicKey,
+		ID:               result.ID,
+		Username:         result.Username,
+		Userid:           result.TelegramUserid,
+		ReceivePublicKey: result.ReceivePublicKey,
+		SendPublicKey:    result.SendPublicKey,
 	})
 }
 
@@ -57,16 +58,22 @@ func ConfirmOTP(c *fiber.Ctx) error {
 
 	// if user does not exist
 	if res.ID == 0 {
-		var newUser = database.User{TelegramUserid: result.TelegramUserid, Username: "", PublicKey: ""}
+		var newUser = database.User{
+			TelegramUserid:   result.TelegramUserid,
+			Username:         "",
+			ReceivePublicKey: "",
+			SendPublicKey:    ""}
+
 		database.DB.Create(&newUser)
 
 		token, _ := utils.GenerateToken(newUser.ID)
 		var response = response.Confirm{
-			Token:     token,
-			ID:        newUser.ID,
-			Userid:    newUser.TelegramUserid,
-			Username:  newUser.Username,
-			PublicKey: newUser.PublicKey,
+			Token:            token,
+			ID:               newUser.ID,
+			Userid:           newUser.TelegramUserid,
+			Username:         newUser.Username,
+			ReceivePublicKey: newUser.ReceivePublicKey,
+			SendPublicKey:    newUser.SendPublicKey,
 		}
 		return c.JSON(response)
 	}
@@ -74,11 +81,12 @@ func ConfirmOTP(c *fiber.Ctx) error {
 	token, _ := utils.GenerateToken(res.ID)
 
 	var response = response.Confirm{
-		Token:     token,
-		ID:        res.ID,
-		Userid:    res.TelegramUserid,
-		Username:  res.Username,
-		PublicKey: res.PublicKey,
+		Token:            token,
+		ID:               res.ID,
+		Userid:           res.TelegramUserid,
+		Username:         res.Username,
+		ReceivePublicKey: res.ReceivePublicKey,
+		SendPublicKey:    res.SendPublicKey,
 	}
 
 	return c.JSON(response)
@@ -171,11 +179,19 @@ func GetProfile(c *fiber.Ctx) error {
 	return c.JSON(response.GetProfile{
 		ID:        result.ID,
 		Username:  result.Username,
-		PublicKey: result.PublicKey,
+		PublicKey: result.ReceivePublicKey,
 	})
 }
 
 func SendMessage(c *fiber.Ctx) error {
+	id := c.Locals("id")
+
+	var isAnonymouse bool = false
+
+	if id == nil {
+		isAnonymouse = true
+	}
+
 	var body request.SendMessage
 
 	if err := c.BodyParser(&body); err != nil {
@@ -195,7 +211,20 @@ func SendMessage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(response.Error{Message: "User not found"})
 	}
 
-	database.DB.Create(&database.Message{Content: body.Message, UserID: body.Id, Time: time.Now()})
+	if isAnonymouse {
+		database.DB.Create(&database.Message{
+			Content: body.Message,
+			ToID:      body.Id,
+			OwnerID:   body.Id,
+			Time:    time.Now()})
+	} else {
+		database.DB.Create(&database.Message{
+			Content: body.Message,
+			FromID:    uint64(id.(float64)),
+			ToID:      body.Id,
+			OwnerID:   body.Id,
+			Time:    time.Now()})
+	}
 
 	// send alarm by telegram bot
 	msg := tgbotapi.NewMessage(int64(result.TelegramUserid), "You received a new message.")
@@ -215,9 +244,9 @@ func SendMessage(c *fiber.Ctx) error {
 
 func GetMessages(c *fiber.Ctx) error {
 	id := c.Locals("id").(float64)
-
+	fmt.Println(id)
 	var result []database.Message
-	database.DB.Where("user_id = ?", int64(id)).Find(&result)
+	database.DB.Where("to_id = ?", uint64(id)).Find(&result)
 
 	return c.JSON(result)
 }
