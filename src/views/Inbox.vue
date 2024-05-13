@@ -18,8 +18,11 @@ axios.get('/get-messages').then((response) => {
       <Message
         v-for="(m, i) in messages"
         :key="i"
-        :text="m.Content"
-        :time="m.Time"
+        :id="m.id"
+        :text="m.content"
+        :time="m.time"
+        :owner="m.owner"
+        :quote="m.quote"
         :mark="false"
       />
     </template>

@@ -257,6 +257,10 @@ func GetPublicKey(c *fiber.Ctx) error {
 	var res database.User
 	database.DB.Where("id = ?", result.FromID).Find(&res)
 
+	if result.OwnerID == result.FromID {
+		return c.JSON(res.ReceivePublicKey)
+	}
+
 	return c.JSON(res.SendPublicKey)
 }
 

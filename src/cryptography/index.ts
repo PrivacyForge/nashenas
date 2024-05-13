@@ -20,8 +20,13 @@ async function encrypt(
   return `${destEncryptedKey}-${encryptedMsg}`
 }
 
-async function decrypt(message: string, privateKey: string) {
-  const [encryptedKey, encryptedMsg] = message.split('-')
+async function decrypt(message: string, privateKey: string, reverse: boolean) {
+  let encryptedKey: string, encryptedMsg: string
+  if (reverse) {
+    ;[encryptedKey, encryptedMsg] = message.split('-').reverse()
+  } else {
+    ;[encryptedKey, encryptedMsg] = message.split('-')
+  }
 
   const key = await RSA.decrypt(encryptedKey, privateKey)
 

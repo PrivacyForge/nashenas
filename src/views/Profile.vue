@@ -35,10 +35,10 @@ const user = reactive<{
 
 async function submit() {
   if (message.value === '') return
-  
+
   let myPublicKey
   if (userStore.isAuth) {
-    myPublicKey = localStorage.getItem('public_key')
+    myPublicKey = localStorage.getItem('send_public_key')
   }
 
   const encryptedMsg = await encrypt(
@@ -66,21 +66,31 @@ async function submit() {
 }
 
 onMounted(() => {
-  setTimeout(() => {
-    axios
+  setTimeout(async () => {
+    await axios
       .get(`/profile/${username}`)
-      .then((response) => {
+      .then(async (response) => {
         user.publicKey = response.data.public_key
         user.id = response.data.id
+
+        await axios.get('/me').then(({ data }) => {
+          userStore.user.id = data.id
+          userStore.user.userid = data.userid
+          userStore.user.username = data.username
+          userStore.user.receivePublicKey = data.receive_public_key
+          userStore.user.sendPublicKey = data.send_public_key
+
+          userStore.isAuth = true
+        })
       })
-      .catch((error) => {
+      .catch(() => {
         notFoundUser.value = true
         errorMessage.value = 'Not found user.'
       })
       .finally(() => {
         loading.value = false
       })
-  }, 1000)
+  }, 500)
 })
 </script>
 
