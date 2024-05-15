@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 
 import { useUserStore } from '@/stores/user'
 
-import CopyText from '@/components/UI/CopyText.vue'
 import Settings from '@/components/Settings.vue'
+import CopyText from '@/components/UI/CopyText.vue'
 
 const userStore = useUserStore()
 

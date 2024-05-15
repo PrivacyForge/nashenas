@@ -50,9 +50,10 @@ type Quote struct {
 }
 
 type GetMessages struct {
-	ID      uint64    `json:"id"`
-	Content string    `json:"content"`
-	Time    time.Time `json:"time"`
-	Owner   bool      `json:"owner"`
-	Quote   *Quote    `json:"quote,omitempty"`
+	ID        uint64    `json:"id"`
+	Content   string    `json:"content"`
+	Time      time.Time `json:"time"`
+	Owner     bool      `json:"owner"`
+	Quote     *Quote    `json:"quote,omitempty"`
+	CanReplay bool      `json:"can_replay"`
 }

@@ -4,9 +4,9 @@ import { ref } from 'vue'
 import axios from '@/plugins/axios'
 import { decrypt, encrypt } from '@/cryptography'
 
-import ReplyIcon from '@/components/icons/Reply.vue'
-import Button from '@/components/UI/Button.vue'
 import Time from '@/components/UI/Time.vue'
+import Button from '@/components/UI/Button.vue'
+import ReplyIcon from '@/components/icons/Reply.vue'
 
 const props = defineProps<{
   id: number
@@ -14,6 +14,7 @@ const props = defineProps<{
   time: string
   owner: boolean
   mark: boolean
+  canReplay: boolean
   quote?: {
     id: number
     content: string
@@ -100,29 +101,35 @@ function Submit() {
     >
       {{ quote.content }}
     </p>
+
     <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
-    <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-      <div class="flex items-center" @click="replaying = true">
-        <span class="mr-1">Reply</span> <ReplyIcon size="20" color="#9CA38F" />
+
+    <template v-if="canReplay">
+      <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
+        <div class="flex items-center" @click="replaying = true">
+          <span class="mr-1">Reply</span>
+          <ReplyIcon size="20" color="#9CA38F" />
+        </div>
       </div>
-    </div>
-    <div v-else class="flex flex-col mt-4">
-      <textarea
-        v-model="replayMessage"
-        class="textarea textarea-bordered focus:outline-[#119af5]"
-        placeholder="Write..."
-        v-focus
-      ></textarea>
-      <Button :block="true" class="mt-4" @click="Submit"
-        >Send Replay Message</Button
-      >
-      <p
-        class="text-center pt-4 text-[#119af5] font-bold"
-        @click="replaying = false"
-      >
-        Cancel
-      </p>
-    </div>
-    <p v-if="replaySent" class="text-center text-[#119af5]">Replay Sent.</p>
+
+      <div v-else class="flex flex-col mt-4">
+        <textarea
+          v-model="replayMessage"
+          class="textarea textarea-bordered focus:outline-[#119af5]"
+          placeholder="Write..."
+          v-focus
+        ></textarea>
+        <Button :block="true" class="mt-4" @click="Submit"
+          >Send Replay Message</Button
+        >
+        <p
+          class="text-center pt-4 text-[#119af5] font-bold"
+          @click="replaying = false"
+        >
+          Cancel
+        </p>
+      </div>
+      <p v-if="replaySent" class="text-center text-[#119af5]">Replay Sent.</p>
+    </template>
   </div>
 </template>
