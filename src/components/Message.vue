@@ -78,7 +78,7 @@ function Submit() {
 </script>
 <template>
   <div
-    class="flex flex-col bg-[#ffffff] p-4 rounded-lg shadow-sm"
+    class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
     :class="mark && ['border-2 border-[#119af5]']"
   >
     <Time :value="time" class="text-gray-400 text-end"></Time>
@@ -92,21 +92,26 @@ function Submit() {
     </p>
     <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
     <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-      <div class="flex" @click="replaying = true">
+      <div class="flex items-center" @click="replaying = true">
         <span class="mr-1">Reply</span> <ReplyIcon size="20" color="#9CA38F" />
       </div>
     </div>
     <div v-else class="flex flex-col mt-4">
       <textarea
         v-model="replayMessage"
-        class="textarea textarea-bordered"
+        class="textarea textarea-bordered focus:outline-[#119af5]"
         placeholder="Write..."
         v-focus
       ></textarea>
       <Button :block="true" class="mt-4" @click="Submit"
-        >Send Replay message</Button
+        >Send Replay Message</Button
       >
-      <p class="text-center pt-4 text-[#119af5] font-bold">Cancel</p>
+      <p
+        class="text-center pt-4 text-[#119af5] font-bold"
+        @click="replaying = false"
+      >
+        Cancel
+      </p>
     </div>
   </div>
 </template>
