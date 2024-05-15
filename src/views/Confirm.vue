@@ -18,10 +18,12 @@ onMounted(() => {
     axios
       .get(`/confirm/${code}`)
       .then(({ data }) => {
-        localStorage.setItem('token', data.token)
+        localStorage.setItem('token', data.receive_public_key)
+        localStorage.setItem('token', data.send_public_key)
 
         userStore.user.id = data.id
-        userStore.user.publicKey = data.public_key
+        userStore.user.receivePublicKey = data.receive_public_key
+        userStore.user.sendPublicKey = data.send_public_key
         userStore.user.username = data.username
         userStore.user.userid = data.userid
 
