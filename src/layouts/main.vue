@@ -111,9 +111,9 @@ function exportKeys() {
 </script>
 
 <template>
-  <div class="lg:w-5/12 mx-auto">
-    <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg shadow-sm">
-      <div class="grid grid-cols-2 gap-x-3">
+  <div class="lg:w-5/12 mx-auto px-4">
+    <nav class="flex justify-between bg-[#ffffff] p-5 my-4 rounded-lg shadow-sm">
+      <div class="cursor-pointer">
         <SettingsIcon size="24" color="black" onclick="modal_1.showModal()" />
       </div>
       <CopyText
@@ -122,7 +122,7 @@ function exportKeys() {
         class="text-[#119af5] test- font-semibold text-end"
       />
     </nav>
-    <hr class="my-1 mx-4" />
+    <hr class="my-1" />
     <RouterView />
   </div>
 

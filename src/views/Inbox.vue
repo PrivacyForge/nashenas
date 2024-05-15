@@ -13,7 +13,7 @@ axios.get('/get-messages').then((response) => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-y-3 m-4">
+  <div class="grid grid-cols-1 gap-y-3 my-4">
     <template v-if="messages?.length">
       <Message
         v-for="(m, i) in messages"

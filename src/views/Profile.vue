@@ -73,15 +73,18 @@ onMounted(() => {
         user.publicKey = response.data.public_key
         user.id = response.data.id
 
-        await axios.get('/me').then(({ data }) => {
-          userStore.user.id = data.id
-          userStore.user.userid = data.userid
-          userStore.user.username = data.username
-          userStore.user.receivePublicKey = data.receive_public_key
-          userStore.user.sendPublicKey = data.send_public_key
+        await axios
+          .get('/me')
+          .then(({ data }) => {
+            userStore.user.id = data.id
+            userStore.user.userid = data.userid
+            userStore.user.username = data.username
+            userStore.user.receivePublicKey = data.receive_public_key
+            userStore.user.sendPublicKey = data.send_public_key
 
-          userStore.isAuth = true
-        })
+            userStore.isAuth = true
+          })
+          .catch(() => {})
       })
       .catch(() => {
         notFoundUser.value = true
@@ -95,7 +98,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4 bg-[#ffffff] p-5 rounded-lg shadow-sm">
+  <div
+    class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4 bg-[#ffffff] p-5 rounded-lg shadow-sm"
+  >
     <div v-if="loading" class="flex justify-center items-center py-6">
       <p class="text-[#119af5] font-semibold">Waiting for server response...</p>
       <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />

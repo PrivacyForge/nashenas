@@ -5,7 +5,10 @@ const axios = Axios.create({
 })
 
 axios.interceptors.request.use(async (config) => {
-  config.headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
 
   return config
 })
