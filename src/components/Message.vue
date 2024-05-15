@@ -5,8 +5,8 @@ import axios from '@/plugins/axios'
 import { decrypt, encrypt } from '@/cryptography'
 
 import ReplyIcon from '@/components/icons/Reply.vue'
-import Button from '@/components/Button.vue'
-import Time from '@/components/Time.vue'
+import Button from '@/components/UI/Button.vue'
+import Time from '@/components/UI/Time.vue'
 
 const props = defineProps<{
   id: number

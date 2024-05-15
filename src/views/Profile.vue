@@ -8,7 +8,7 @@ import { useUserStore } from '@/stores/user'
 
 import TelegramIcon from '@/components/icons/Telegram.vue'
 import GithubIcon from '@/components/icons/Github.vue'
-import Button from '@/components/Button.vue'
+import Button from '@/components/UI/Button.vue'
 
 const userStore = useUserStore()
 
