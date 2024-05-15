@@ -95,7 +95,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-4 m-4 bg-[#ffffff] p-5 rounded-lg shadow-sm">
+  <div class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4 bg-[#ffffff] p-5 rounded-lg shadow-sm">
     <div v-if="loading" class="flex justify-center items-center py-6">
       <p class="text-[#119af5] font-semibold">Waiting for server response...</p>
       <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />

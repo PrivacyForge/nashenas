@@ -111,7 +111,7 @@ function exportKeys() {
 </script>
 
 <template>
-  <div>
+  <div class="lg:w-5/12 mx-auto">
     <nav class="flex justify-between bg-[#ffffff] p-5 m-4 rounded-lg shadow-sm">
       <div class="grid grid-cols-2 gap-x-3">
         <SettingsIcon size="24" color="black" onclick="modal_1.showModal()" />
