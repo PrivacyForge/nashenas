@@ -14,7 +14,7 @@ axios.get('/get-messages').then((response) => {
 
 <template>
   <div class="grid grid-cols-1 gap-y-3 m-4">
-    <template v-if="messages.length || !messages">
+    <template v-if="messages?.length">
       <Message
         v-for="(m, i) in messages"
         :key="i"
