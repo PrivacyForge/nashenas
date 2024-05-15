@@ -22,6 +22,7 @@ const props = defineProps<{
 
 const replaying = ref(false)
 const replayMessage = ref('')
+const replaySent = ref(false)
 
 const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
@@ -69,10 +70,18 @@ function Submit() {
       encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
     }
 
-    axios.post('/replay-message', {
-      message_id: props.id,
-      message: encryptedMsg,
-    })
+    axios
+      .post('/replay-message', {
+        message_id: props.id,
+        message: encryptedMsg,
+      })
+      .then(() => {
+        replaying.value = false
+
+        replaySent.value = true
+
+        setTimeout(() => (replaySent.value = false), 1500)
+      })
   })
 }
 </script>
@@ -84,7 +93,8 @@ function Submit() {
     <Time :value="time" class="text-gray-400 text-end"></Time>
     <p
       v-if="quote?.content"
-      class="border-l-4 border-l-black pl-2 py-2"
+      class="border-l-4 rounded-md border-l-blue-500 pl-2 py-2 mt-2"
+      style="background-color: rgba(137, 207, 240, 0.3)"
       quote="true"
       v-decrypt
     >
@@ -113,5 +123,6 @@ function Submit() {
         Cancel
       </p>
     </div>
+    <p v-if="replaySent" class="text-center text-[#119af5]">Replay Sent.</p>
   </div>
 </template>

@@ -8,31 +8,49 @@ import { generateKeyPair } from '@/cryptography/RSA'
 
 import CopyText from '@/components/CopyText.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
+import { extractKeys } from '@/utils'
 
 const userStore = useUserStore()
 
 const FileInput = ref<any>()
 
-const hasKeys = ref(
-  !!localStorage.getItem('private_key') && !!localStorage.getItem('public_key')
+const hasKeys = computed(
+  () =>
+    localStorage.getItem('receive_private_key') &&
+    localStorage.getItem('receive_public_key') &&
+    localStorage.getItem('send_private_key') &&
+    localStorage.getItem('send_public_key')
 )
+
 const loading = ref(false)
 
 const myLink = computed(() => `${location.origin}/@${userStore.user.username}`)
 
 async function generateKeys() {
-  const { privateKey, publicKey } = await generateKeyPair()
-
   loading.value = true
 
-  axios
-    .post('/set-key', { public_key: publicKey })
-    .then(() => {
-      localStorage.setItem('private_key', privateKey)
-      localStorage.setItem('public_key', publicKey)
+  let receivePublicKey: string, sendPublicKey: string
 
-      userStore.user.publicKey = publicKey
-      hasKeys.value = true
+  await generateKeyPair().then(({ privateKey, publicKey }) => {
+    localStorage.setItem('receive_private_key', privateKey)
+    localStorage.setItem('receive_public_key', publicKey)
+    receivePublicKey = publicKey
+  })
+
+  await generateKeyPair().then(({ privateKey, publicKey }) => {
+    localStorage.setItem('send_private_key', privateKey)
+    localStorage.setItem('send_public_key', publicKey)
+    sendPublicKey = publicKey
+  })
+
+  axios
+    .post('/set-key', {
+      receive_public_key: receivePublicKey!,
+      send_public_key: sendPublicKey!,
+    })
+    .then(({ data }) => {
+      userStore.user.receivePublicKey = data.receive_public_key
+      userStore.user.sendPublicKey = data.send_public_key
     })
     .finally(() => {
       loading.value = false
@@ -45,14 +63,29 @@ function importKeys(event: Event) {
   const reader = new FileReader()
   reader.onload = (e) => {
     const rawData = e.target!.result as string
-    const privateKey = rawData.split('divide')[0]
-    const publicKey = rawData.split('divide')[1].slice(1) // send to server
 
-    localStorage.setItem('private_key', privateKey)
-    localStorage.setItem('public_key', publicKey)
-    axios.post('/set-key', { public_key: publicKey }).then(() => {
-      userStore.user.publicKey = publicKey
-    })
+    const {
+      receivePrivateKey,
+      receivePublicKey,
+      sendPrivateKey,
+      sendPublicKey,
+    } = extractKeys(rawData)
+
+    localStorage.setItem('receive_private_key', receivePrivateKey)
+    localStorage.setItem('receive_public_key', receivePublicKey)
+
+    localStorage.setItem('send_private_key', sendPrivateKey)
+    localStorage.setItem('send_public_key', sendPublicKey)
+
+    axios
+      .post('/set-key', {
+        receive_public_key: receivePublicKey,
+        send_public_key: sendPublicKey,
+      })
+      .then(({ data }) => {
+        userStore.user.receivePublicKey = data.receive_public_key
+        userStore.user.sendPublicKey = data.send_public_key
+      })
   }
   reader.readAsText(file)
 }
