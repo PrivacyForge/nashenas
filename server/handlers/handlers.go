@@ -323,5 +323,10 @@ func GetMessages(c *fiber.Ctx) error {
 
 	}
 
-	return c.JSON(messages)
+	if len(messages) > 0 {
+		return c.JSON(messages)
+	} else {
+		var emptyArray []string
+		return c.JSON(emptyArray)
+	}
 }
