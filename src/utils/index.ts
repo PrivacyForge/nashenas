@@ -1,3 +1,10 @@
+interface IKeys {
+  receivePublicKey: string
+  receivePrivateKey: string
+  sendPublicKey: string
+  sendPrivateKey: string
+}
+
 function generateKeysTemplate(receiveKeys: string[], sendKeys: string[]) {
   return `${receiveKeys[0]}divide\n${receiveKeys[1]}separate\n${sendKeys[0]}divide\n${sendKeys[1]}`
 }
@@ -19,4 +26,41 @@ function extractKeys(content: string) {
   }
 }
 
-export { generateKeysTemplate, extractKeys }
+function exportKeys() {
+  const link = document.createElement('a')
+
+  const receiveKeys = []
+  receiveKeys[0] = localStorage.getItem('receive_private_key')!
+  receiveKeys[1] = localStorage.getItem('receive_public_key')!
+
+  const sendKeys = []
+  sendKeys[0] = localStorage.getItem('send_private_key')!
+  sendKeys[1] = localStorage.getItem('send_public_key')!
+
+  const content = generateKeysTemplate(receiveKeys, sendKeys)
+
+  const file = new Blob([content], { type: 'text/plain' })
+
+  link.href = URL.createObjectURL(file)
+
+  link.download = 'keys.txt'
+
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+function importKeysFromFile(file: File): Promise<IKeys> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const rawData = e.target!.result as string
+
+      const keys = extractKeys(rawData)
+
+      resolve(keys)
+    }
+    reader.readAsText(file)
+  })
+}
+
+export { generateKeysTemplate, extractKeys, exportKeys, importKeysFromFile }

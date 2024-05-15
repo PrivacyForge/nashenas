@@ -302,10 +302,11 @@ func GetMessages(c *fiber.Ctx) error {
 			var res database.Message
 			database.DB.Where("id = ?", result[i].ParentID).Find(&res)
 			messages = append(messages, response.GetMessages{
-				ID:      result[i].ID,
-				Content: result[i].Content,
-				Time:    result[i].Time,
-				Owner:   owner,
+				ID:        result[i].ID,
+				Content:   result[i].Content,
+				Time:      result[i].Time,
+				Owner:     owner,
+				CanReplay: result[i].FromID != 0,
 				Quote: &response.Quote{
 					ID:      res.ID,
 					Content: res.Content,
@@ -313,11 +314,12 @@ func GetMessages(c *fiber.Ctx) error {
 			})
 		} else {
 			messages = append(messages, response.GetMessages{
-				ID:      result[i].ID,
-				Content: result[i].Content,
-				Time:    result[i].Time,
-				Owner:   owner,
-				Quote:   nil,
+				ID:        result[i].ID,
+				Time:      result[i].Time,
+				Content:   result[i].Content,
+				CanReplay: result[i].FromID != 0,
+				Owner: owner,
+				Quote: nil,
 			})
 		}
 

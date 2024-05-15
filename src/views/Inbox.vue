@@ -19,10 +19,11 @@ axios.get('/get-messages').then((response) => {
         v-for="(m, i) in messages"
         :key="i"
         :id="m.id"
-        :text="m.content"
         :time="m.time"
         :owner="m.owner"
         :quote="m.quote"
+        :text="m.content"
+        :canReplay="m.can_replay"
         :mark="false"
       />
     </template>
