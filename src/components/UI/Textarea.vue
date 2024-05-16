@@ -24,11 +24,9 @@ textarea {
   border-width: 1px;
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b1, oklch(var(--b1) / var(--tw-bg-opacity)));
-  border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
 }
 textarea:focus {
   box-shadow: none;
-  border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
   outline-style: solid;
   outline-width: 2px;
   outline-offset: 2px;

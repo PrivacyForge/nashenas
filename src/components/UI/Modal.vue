@@ -13,7 +13,7 @@ function close() {
       <div class="modal-container rounded-xl">
         <div class="flex justify-between items-center">
           <slot name="header">header-text</slot>
-          <button>✕</button>
+          <button @click="close()">✕</button>
         </div>
 
         <div class="modal-body">

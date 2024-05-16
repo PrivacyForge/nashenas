@@ -12,7 +12,7 @@ const attrs = useAttrs()
 <template>
   <button
     v-bind="attrs"
-    class="btn bg-[#119af5] text-white disabled:bg-[#119af5] disabled:text-white"
+    class="bg-[#119af5] text-white disabled:bg-[#119af5] py-3 font-bold rounded-md active:scale-95"
     :class="[(loading || disabled) && 'opacity-70', block && 'btn-block']"
     :disabled="loading || disabled"
   >
