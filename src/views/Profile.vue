@@ -118,10 +118,7 @@ const vddd = ref('')
         </template>
         <template v-else>
           <p>Write something for {{ $route.params.username }}...</p>
-          <Textarea
-            v-model="message"
-            placeholder="Write Message..."
-          ></Textarea>
+          <Textarea v-model="message" placeholder="Write Message..."></Textarea>
           <Button
             :disabled="message.length < 3"
             :loading="submitLoading"
@@ -134,7 +131,9 @@ const vddd = ref('')
         <p class="text-center text-[#119af5] font-semibold">
           Your encrypted message has been sent.
         </p>
-        <Button @click="$router.push({ name: 'auth' })">Create account</Button>
+        <Button v-if="!userStore.isAuth" @click="$router.push({ name: 'auth' })"
+          >Create account</Button
+        >
       </template>
     </template>
   </Card>
