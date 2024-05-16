@@ -87,6 +87,13 @@ function importHandler(event: Event) {
       <h3 class="font-bold text-lg">Security Keys</h3>
     </template>
     <template #body>
+      <input
+        ref="FileInput"
+        type="file"
+        class="hidden"
+        @change="importHandler"
+      />
+
       <template v-if="!loading">
         <div v-if="hasKeys">
           <p class="pt-5 pb-10 text-center text-green-600">
@@ -106,12 +113,6 @@ function importHandler(event: Event) {
               >
                 Import
               </button>
-              <input
-                ref="FileInput"
-                type="file"
-                class="hidden"
-                @change="importHandler"
-              />
             </div>
             <button
               class="text-[#119af5] py-2 rounded-md font-semibold"
@@ -132,7 +133,10 @@ function importHandler(event: Event) {
             >
               Generate
             </button>
-            <button class="text-[#119af5] py-2 rounded-md font-semibold">
+            <button
+              class="text-[#119af5] py-2 rounded-md font-semibold"
+              @click="FileInput.click()"
+            >
               I Want to import my keys.
             </button>
           </div>
