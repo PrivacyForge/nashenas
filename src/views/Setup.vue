@@ -3,8 +3,12 @@ import { ref } from 'vue'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
+import { extractKeys, exportKeys } from '@/utils'
 import { generateKeyPair } from '@/cryptography/RSA'
-import { generateKeysTemplate, extractKeys, exportKeys } from '@/utils'
+
+import Card from '@/components/UI/Card.vue'
+import Input from '@/components/UI/Input.vue'
+import Button from '@/components/UI/Button.vue'
 
 const userStore = useUserStore()
 
@@ -104,30 +108,25 @@ function usernameSubmit() {
 }
 </script>
 <template>
-  <div class="grid grid-cols-1 m-4 bg-white shadow-sm p-5 rounded-lg">
+  <Card class="grid grid-cols-1 m-4">
     <div v-if="loading" class="flex justify-center items-center py-6">
       <p class="text-[#119af5] font-semibold">Generating your keys...</p>
       <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />
     </div>
+
     <template v-else>
       <template v-if="state === 'set-username'">
         <div class="relative">
           <label class="font-semibold"> Choose a stylish username: </label>
-          <input
+          <Input
             v-model="username"
-            type="text"
-            class="input input-bordered w-full focus:outline-[#119af5] outline-[#119af5] mt-3 pl-6"
-            placeholder="username"
+            class="pl-7 my-4"
+            placeholder="Username..."
           />
-          <span class="absolute left-2 top-12">@</span>
+          <span class="absolute left-2 top-[52px]">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
-        <button
-          class="btn mt-4 bg-[#119af5] text-white"
-          @click="usernameSubmit()"
-        >
-          Next
-        </button>
+        <Button @click="usernameSubmit()"> Next </Button>
       </template>
 
       <template v-if="state === 'key-question'">
@@ -155,34 +154,19 @@ function usernameSubmit() {
       </template>
 
       <template v-if="state === 'key-upload'">
-        <p class="text-center text-green-600 mt-2">
+        <p class="text-center text-green-600 mt-2 mb-4">
           Your keys have been set successfully.
         </p>
-        <button
-          class="btn mt-6 bg-[#119af5] text-white"
-          @click="$router.push({ name: 'inbox' })"
-        >
-          Continue
-        </button>
+        <Button @click="$router.push({ name: 'inbox' })"> Continue </Button>
       </template>
 
       <template v-if="state === 'key-generation'">
-        <p class="text-center text-green-600 mt-2">
+        <p class="text-center text-green-600 mt-2 mb-4">
           Your keys have been generated.
         </p>
-        <button
-          class="btn mt-6 bg-[#119af5] text-white"
-          @click="$router.push({ name: 'inbox' })"
-        >
-          Continue
-        </button>
-        <button
-          class="text-[#119af5] pt-4 pb-2 rounded-md font-semibold"
-          @click="exportHandler"
-        >
-          Export Keys
-        </button>
+        <Button @click="$router.push({ name: 'inbox' })"> Continue </Button>
+        <p class="text-center mt-4 text-[#119af5] font-semibold" @click="exportHandler"> Export Keys </p>
       </template>
     </template>
-  </div>
+  </Card>
 </template>
