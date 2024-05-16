@@ -1,15 +1,16 @@
 <script lang="ts" setup>
-const value = defineModel()
+const value = defineModel<string>()
 
 defineProps<{
   placeholder?: string
 }>()
 </script>
+
 <template>
   <textarea v-model="value" :placeholder="placeholder" dir="auto"></textarea>
 </template>
 
-<style>
+<style scoped>
 textarea {
   min-height: 3rem /* 48px */;
   flex-shrink: 1;

@@ -6,3 +6,4 @@ node_modules
 .prod.env
 .dev.env
 .vercel
+dist
