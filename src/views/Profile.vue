@@ -6,9 +6,11 @@ import axios from '@/plugins/axios'
 import { encrypt } from '@/cryptography'
 import { useUserStore } from '@/stores/user'
 
-import TelegramIcon from '@/components/icons/Telegram.vue'
-import GithubIcon from '@/components/icons/Github.vue'
+import Card from '@/components/UI/Card.vue'
 import Button from '@/components/UI/Button.vue'
+import Textarea from '@/components/UI/Textarea.vue'
+import GithubIcon from '@/components/icons/Github.vue'
+import TelegramIcon from '@/components/icons/Telegram.vue'
 
 const userStore = useUserStore()
 
@@ -95,16 +97,17 @@ onMounted(() => {
       })
   }, 500)
 })
+
+const vddd = ref('')
 </script>
 
 <template>
-  <div
-    class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4 bg-[#ffffff] p-5 rounded-lg shadow-sm"
-  >
+  <Card class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4">
     <div v-if="loading" class="flex justify-center items-center py-6">
       <p class="text-[#119af5] font-semibold">Waiting for server response...</p>
       <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />
     </div>
+
     <template v-else>
       <template v-if="!sent">
         <template v-if="notFoundUser">
@@ -115,12 +118,10 @@ onMounted(() => {
         </template>
         <template v-else>
           <p>Write something for {{ $route.params.username }}...</p>
-          <textarea
+          <Textarea
             v-model="message"
-            class="textarea textarea-bordered w-full focus:outline-[#119af5]"
-            placeholder="Message..."
-            dir="auto"
-          ></textarea>
+            placeholder="Write Message..."
+          ></Textarea>
           <Button
             :disabled="message.length < 3"
             :loading="submitLoading"
@@ -136,7 +137,8 @@ onMounted(() => {
         <Button @click="$router.push({ name: 'auth' })">Create account</Button>
       </template>
     </template>
-  </div>
+  </Card>
+
   <div class="fixed bottom-2 left-[50%] w-max translate-x-[-50%] text-gray-500">
     <div class="flex justify-center items-center pb-2">
       <GithubIcon class="mr-1" size="26" color="gray" />

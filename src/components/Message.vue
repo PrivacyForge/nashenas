@@ -6,6 +6,7 @@ import { decrypt, encrypt } from '@/cryptography'
 
 import Time from '@/components/UI/Time.vue'
 import Button from '@/components/UI/Button.vue'
+import Textarea from '@/components/UI/Textarea.vue'
 import ReplyIcon from '@/components/icons/Reply.vue'
 
 const props = defineProps<{
@@ -113,12 +114,11 @@ function Submit() {
       </div>
 
       <div v-else class="flex flex-col mt-4">
-        <textarea
+        <Textarea
           v-model="replayMessage"
-          class="textarea textarea-bordered focus:outline-[#119af5]"
           placeholder="Write..."
           v-focus
-        ></textarea>
+        ></Textarea>
         <Button :block="true" class="mt-4" @click="Submit"
           >Send Replay Message</Button
         >
