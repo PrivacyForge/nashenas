@@ -85,7 +85,7 @@ function importHandler(event: Event) {
 
   <Modal v-model="visible">
     <template #header>
-      <h3 class="font-bold text-lg">Security Keys</h3>
+      <h3 class="font-bold text-lg">کلیدهای امنیتی</h3>
     </template>
     <template #body>
       <input
@@ -98,7 +98,7 @@ function importHandler(event: Event) {
       <template v-if="!loading">
         <div v-if="hasKeys">
           <p class="pt-5 pb-10 text-center text-green-600">
-            Your keys are set and you are safe.
+            کلیدهای شما پیکربندی شده است.
           </p>
           <div class="grid grid-cols-1 gap-y-2">
             <div class="grid grid-cols-2 gap-x-2">
@@ -106,46 +106,46 @@ function importHandler(event: Event) {
                 class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
                 @click="exportKeys"
               >
-                Export
+                دانلود
               </button>
               <button
                 class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
                 @click="FileInput.click()"
               >
-                Import
+                آپلود
               </button>
             </div>
             <button
               class="text-[#119af5] py-2 rounded-md font-semibold"
               @click="generateKeys"
             >
-              I want to regenerate my keys.
+              می‌خواهم مجددا جفت کلید بسازم.
             </button>
           </div>
         </div>
         <template v-else>
           <p class="py-10 text-center text-red-600">
-            You currently have no keys!
+            درحال حاضر هیچ کلیدی ندارید.
           </p>
           <div class="grid grid-cols-1 gap-y-2">
             <button
               class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
               @click="generateKeys"
             >
-              Generate
+              ساختن
             </button>
             <button
               class="text-[#119af5] py-2 rounded-md font-semibold"
               @click="FileInput.click()"
             >
-              I Want to import my keys.
+              آپلود می‌کنم.
             </button>
           </div>
         </template>
       </template>
       <div v-else>
         <p class="flex items-center justify-center py-10">
-          Generating your keys...
+          درحال ساخت جفت کلید...
           <LoadingIcon color="#119af5" size="26px" />
         </p>
       </div>
