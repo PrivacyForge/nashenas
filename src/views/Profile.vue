@@ -96,16 +96,14 @@ onMounted(() => {
       .finally(() => {
         loading.value = false
       })
-  }, 30000)
+  }, 1000)
 })
-
-const vddd = ref('')
 </script>
 
 <template>
   <Card class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4">
     <div v-if="loading" class="flex justify-center items-center py-4">
-      <p class="text-[#119af5] font-semibold">درحال بارگذاری</p>
+      <p class="text-[#119af5] font-semibold">درحال بارگذاری...</p>
       <LoadingIcon color="#119af5" size="26px" />
     </div>
 
