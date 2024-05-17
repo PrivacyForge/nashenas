@@ -284,6 +284,22 @@ func ReplayMessage(c *fiber.Ctx) error {
 		ParentID: result.ID,
 		Time:     time.Now()})
 
+	var res database.User
+	database.DB.Where("id = ?", result.FromID).Find(&res)
+
+	// send alarm by telegram bot
+	msg := tgbotapi.NewMessage(int64(res.TelegramUserid), "You received a new message.")
+
+	url := configs.Url + "/inbox"
+
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
+		),
+	)
+
+	telegram.Bot.Send(msg)
+
 	return c.SendString("Ok")
 }
 
@@ -318,8 +334,8 @@ func GetMessages(c *fiber.Ctx) error {
 				Time:      result[i].Time,
 				Content:   result[i].Content,
 				CanReplay: result[i].FromID != 0,
-				Owner: owner,
-				Quote: nil,
+				Owner:     owner,
+				Quote:     nil,
 			})
 		}
 
