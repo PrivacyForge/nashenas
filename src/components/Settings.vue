@@ -7,6 +7,7 @@ import { generateKeyPair } from '@/cryptography/RSA'
 import { exportKeys, importKeysFromFile } from '@/utils'
 
 import Modal from '@/components/UI/Modal.vue'
+import LoadingIcon from '@/components/icons/Loading.vue'
 import SettingsIcon from '@/components/icons/Settings.vue'
 
 const userStore = useUserStore()
@@ -145,7 +146,7 @@ function importHandler(event: Event) {
       <div v-else>
         <p class="flex items-center justify-center py-10">
           Generating your keys...
-          <span class="loading loading-infinity loading-md mx-2"></span>
+          <LoadingIcon color="#119af5" size="26px" />
         </p>
       </div>
     </template>

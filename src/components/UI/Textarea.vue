@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <textarea v-model="value" :placeholder="placeholder" dir="auto"></textarea>
+  <textarea v-model="value" :placeholder="placeholder" dir="rtl"></textarea>
 </template>
 
 <style scoped>
@@ -18,7 +18,7 @@ textarea {
   padding-right: 1rem /* 16px */;
   padding-top: 0.5rem /* 8px */;
   padding-bottom: 0.5rem /* 8px */;
-  font-size: 0.875rem /* 14px */;
+  font-size: 1rem /* 14px */;
   line-height: 1.25rem /* 20px */;
   line-height: 2;
   border-radius: var(--rounded-btn, 0.5rem /* 8px */);

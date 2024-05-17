@@ -10,6 +10,7 @@ import Card from '@/components/UI/Card.vue'
 import Button from '@/components/UI/Button.vue'
 import Textarea from '@/components/UI/Textarea.vue'
 import GithubIcon from '@/components/icons/Github.vue'
+import LoadingIcon from '@/components/icons/Loading.vue'
 import TelegramIcon from '@/components/icons/Telegram.vue'
 
 const userStore = useUserStore()
@@ -95,7 +96,7 @@ onMounted(() => {
       .finally(() => {
         loading.value = false
       })
-  }, 500)
+  }, 30000)
 })
 
 const vddd = ref('')
@@ -103,9 +104,9 @@ const vddd = ref('')
 
 <template>
   <Card class="grid grid-cols-1 lg:w-4/12 lg:mx-auto gap-4 m-4">
-    <div v-if="loading" class="flex justify-center items-center py-6">
-      <p class="text-[#119af5] font-semibold">Waiting for server response...</p>
-      <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />
+    <div v-if="loading" class="flex justify-center items-center py-4">
+      <p class="text-[#119af5] font-semibold">درحال بارگذاری</p>
+      <LoadingIcon color="#119af5" size="26px" />
     </div>
 
     <template v-else>
@@ -117,19 +118,19 @@ const vddd = ref('')
           />
         </template>
         <template v-else>
-          <p>Write something for {{ $route.params.username }}...</p>
-          <Textarea v-model="message" placeholder="Write Message..."></Textarea>
+          <p>برای کاربر {{ $route.params.username }} یه پیام ناشناس بنویس...</p>
+          <Textarea v-model="message" placeholder="متن..."></Textarea>
           <Button
             :disabled="message.length < 3"
             :loading="submitLoading"
             @click="submit"
-            >Send to @{{ $route.params.username }}</Button
+            >ارسال پیام</Button
           >
         </template>
       </template>
       <template v-else>
         <p class="text-center text-[#119af5] font-semibold">
-          Your encrypted message has been sent.
+          پیام شما رمزنگاری و به کاربر ارسال شد.
         </p>
         <Button v-if="!userStore.isAuth" @click="$router.push({ name: 'auth' })"
           >Create account</Button
@@ -140,9 +141,12 @@ const vddd = ref('')
 
   <div class="fixed bottom-2 left-[50%] w-max translate-x-[-50%] text-gray-500">
     <div class="flex justify-center items-center pb-2">
-      <GithubIcon class="mr-1" size="26" color="gray" />
-      <TelegramIcon class="ml-1" size="24" color="gray" />
+      <a href="https://github.com/PrivacyForge/nashenas" target="_blank">
+        <GithubIcon class="ml-1" size="26" color="gray" />
+      </a>
+      <a href="https://nashenase2ebot.t.me" target="_blank">
+        <TelegramIcon class="mr-1" size="24" color="gray" />
+      </a>
     </div>
-    <p>Open Source, E2E Encrption, Safe.</p>
   </div>
 </template>

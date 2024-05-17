@@ -6,6 +6,7 @@ import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
 
 import Card from '@/components/UI/Card.vue'
+import LoadingIcon from '@/components/icons/Loading.vue'
 
 const userStore = useUserStore()
 
@@ -37,18 +38,17 @@ setTimeout(() => {
         router.push({ name: 'inbox' })
       }
     })
-    .catch((error) => {
-      errorMessage.value = error.response.data.message
+    .catch(() => {
+      errorMessage.value = 'لینک شما منقضی شده است.'
     })
     .finally(() => {})
 }, 1000)
 </script>
-
 <template>
   <Card class="grid grid-cols-1 m-4">
-    <div v-if="!errorMessage" class="flex justify-center items-center py-5">
-      <p class="text-[#119af5] font-semibold">Waiting for server response...</p>
-      <span class="loading loading-infinity loading-lg mx-2 text-[#119af5]" />
+    <div v-if="!errorMessage" class="flex justify-center items-center py-4">
+      <p class="text-[#119af5] font-semibold">در انتظار پاسخ سرور...</p>
+      <LoadingIcon color="#119af5" size="26px" />
     </div>
     <template v-else>
       <p class="text-red-500 text-center" v-text="errorMessage"></p>

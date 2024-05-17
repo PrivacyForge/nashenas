@@ -27,6 +27,8 @@ axios.get('/get-messages').then((response) => {
         :mark="false"
       />
     </template>
-    <p class="text-center text-gray-400" v-else>You have no message :)</p>
+    <p class="text-center text-gray-400" v-else>
+      فعلا هیچ پیامی دریافت نکردی :)
+    </p>
   </div>
 </template>

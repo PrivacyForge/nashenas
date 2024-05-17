@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html {
-  @apply bg-[#f7f7f7] text-black;
+  @apply bg-[#f7f7f7] text-black font-[Vazirmatn] text-[#1f2328];
 }

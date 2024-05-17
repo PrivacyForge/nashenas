@@ -21,7 +21,7 @@ const myLink = computed(() => `${location.origin}/@${userStore.user.username}`)
         <Settings />
       </div>
       <CopyText
-        text="My Link"
+        text="لینک من"
         :copy="myLink"
         class="text-[#119af5] test- font-semibold text-end"
       />

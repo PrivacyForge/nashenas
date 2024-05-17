@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useAttrs } from 'vue'
+import LoadingIcon from '@/components/icons/Loading.vue'
 
 defineProps<{
   loading?: boolean
@@ -18,6 +19,6 @@ const attrs = useAttrs()
   >
     <!-- Send to @{{ $route.params.username }} -->
     <slot />
-    <span v-if="loading" class="loading loading-infinity loading-md"></span>
+    <LoadingIcon v-if="loading" color="white" size="26px" />
   </button>
 </template>

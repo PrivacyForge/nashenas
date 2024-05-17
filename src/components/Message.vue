@@ -48,7 +48,7 @@ const vDecrypt = {
 
       el.innerText = decryptedMsg
     } catch (error) {
-      el.innerText = 'Decryption Error.'
+      el.innerText = 'خطا در رمزگشایی.'
     }
   },
 }
@@ -92,7 +92,7 @@ function Submit() {
     class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
     :class="mark && ['border-2 border-[#119af5]']"
   >
-    <Time :value="time" class="text-gray-400 text-end"></Time>
+    <Time :value="time" class="text-gray-400 text-end text-sm"></Time>
     <p
       v-if="quote?.content"
       class="border-l-4 rounded-md border-l-blue-500 pl-2 py-2 mt-2"
@@ -103,12 +103,12 @@ function Submit() {
       {{ quote.content }}
     </p>
 
-    <p class="break-words pt-2" dir="auto" v-decrypt>{{ text }}</p>
+    <p class="break-words py-2" dir="auto" v-decrypt>{{ text }}</p>
 
     <template v-if="canReplay">
       <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-        <div class="flex items-center" @click="replaying = true">
-          <span class="mr-1">Reply</span>
+        <div class="flex items-center cursor-pointer" @click="replaying = true">
+          <span class="ml-1 text-sm">پاسخ</span>
           <ReplyIcon size="20" color="#9CA38F" />
         </div>
       </div>
@@ -116,20 +116,20 @@ function Submit() {
       <div v-else class="flex flex-col mt-4">
         <Textarea
           v-model="replayMessage"
-          placeholder="Write..."
+          placeholder="پاسخ شما..."
           v-focus
         ></Textarea>
-        <Button :block="true" class="mt-4" @click="Submit"
-          >Send Replay Message</Button
-        >
+        <Button :block="true" class="mt-4" @click="Submit">ارسال</Button>
         <p
           class="text-center pt-4 text-[#119af5] font-bold"
           @click="replaying = false"
         >
-          Cancel
+          بیخیال
         </p>
       </div>
-      <p v-if="replaySent" class="text-center text-[#119af5]">Replay Sent.</p>
+      <p v-if="replaySent" class="text-center text-[#119af5]">
+        پاسخ شما ارسال شد.
+      </p>
     </template>
   </div>
 </template>
