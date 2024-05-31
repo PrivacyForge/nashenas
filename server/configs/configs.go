@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -11,6 +12,7 @@ var Url string
 var ServerPort string
 var Secret string
 var BotToken string
+var AdminId int64
 
 func LoadConfigs() {
 	if err := godotenv.Load(".env"); err != nil {
@@ -22,4 +24,5 @@ func LoadConfigs() {
 	BotToken = os.Getenv("BOT_TOKEN")
 	Secret = os.Getenv("SECRET")
 	Url = os.Getenv("URL")
+	AdminId, _ = strconv.ParseInt(os.Getenv("ADMIN_ID"), 10, 64)
 }

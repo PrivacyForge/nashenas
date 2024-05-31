@@ -14,8 +14,6 @@ import (
 	"github.com/PrivacyForge/nashenas/telegram"
 )
 
-const ADMIN_ID = 1152107887
-
 func main() {
 	configs.LoadConfigs()
 
@@ -25,8 +23,6 @@ func main() {
 		panic("database connection failed.")
 	}
 
-	database.Migration()
-
 	updates := telegram.InitBot()
 
 	app.Use(cors.New(cors.Config{
@@ -34,7 +30,7 @@ func main() {
 		AllowHeaders: "*",
 	}))
 
-	app = routes.DefineRoutes(app)
+	routes.DefineRoutes(app)
 
 	go app.Listen(":" + configs.ServerPort)
 
@@ -68,17 +64,24 @@ func main() {
 				)
 
 				telegram.Bot.Send(msg)
-			} else {
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
+				continue
+			}
+			
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
+			msg.ReplyToMessageID = update.Message.MessageID
+
+			telegram.Bot.Send(msg)
+
+		case "backup":
+			if update.Message.Chat.ID != configs.AdminId {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Permission denied")
 				msg.ReplyToMessageID = update.Message.MessageID
 
 				telegram.Bot.Send(msg)
+				continue
 			}
-		case "backup":
-			if update.Message.Chat.ID == ADMIN_ID {
-				file := tgbotapi.FilePath("./local.db")
-				telegram.Bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
-			}
+			file := tgbotapi.FilePath("./database/local.db")
+			telegram.Bot.Send(tgbotapi.NewDocument(update.Message.Chat.ID, file))
 		}
 
 	}

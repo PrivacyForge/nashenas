@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func DefineRoutes(app *fiber.App) *fiber.App {
+func DefineRoutes(app *fiber.App) {
 	app.Get("/", middlewares.RequiredBearerToken, handlers.HelloWorld)
 	app.Get("/me", middlewares.RequiredBearerToken, handlers.GetMe)
 	app.Get("/get-messages", middlewares.RequiredBearerToken, handlers.GetMessages)
@@ -17,6 +17,4 @@ func DefineRoutes(app *fiber.App) *fiber.App {
 	app.Post("/set-key", middlewares.RequiredBearerToken, handlers.SetPublicKey)
 	app.Post("/send-message", middlewares.OptionalBearerToken, handlers.SendMessage)
 	app.Post("/replay-message", middlewares.RequiredBearerToken, handlers.ReplayMessage)
-
-	return app
 }

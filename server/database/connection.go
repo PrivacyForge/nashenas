@@ -20,10 +20,12 @@ func InitConnection() error {
 
 	log.Println("Database connection established successfully.")
 
+	migration()
+
 	return nil
 }
 
-func Migration() {
+func migration() {
 	DB.AutoMigrate(&OTP{})
 	DB.AutoMigrate(&User{})
 	DB.AutoMigrate(&Message{})
