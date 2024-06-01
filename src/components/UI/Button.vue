@@ -13,11 +13,10 @@ const attrs = useAttrs()
 <template>
   <button
     v-bind="attrs"
-    class="bg-[#119af5] text-white disabled:bg-[#119af5] py-3 font-bold rounded-md active:scale-95"
+    class="flex justify-center bg-[#119af5] text-white disabled:bg-[#119af5] py-3 font-bold rounded-md active:scale-95"
     :class="[(loading || disabled) && 'opacity-70', block && 'btn-block']"
     :disabled="loading || disabled"
   >
-    <!-- Send to @{{ $route.params.username }} -->
     <slot />
     <LoadingIcon v-if="loading" color="white" size="26px" />
   </button>

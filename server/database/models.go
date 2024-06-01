@@ -36,3 +36,11 @@ type Message struct {
 	ParentID uint64    `gorm:"default:null"`
 	Replies  []Message `gorm:"foreignKey:ParentID"`
 }
+
+// type Waitlist struct {
+// 	gorm.Model
+// 	ID         uint64 `gorm:"primaryKey"`
+// 	TelegramId uint64 `gorm:"size: 255"`
+// 	TwitterId  string `gorm:"default:null"`
+// 	Accept     bool   `gorm:"size: 255"`
+// }

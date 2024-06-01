@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PrivacyForge/nashenas/configs"
@@ -111,7 +112,9 @@ func SetUsername(c *fiber.Ctx) error {
 	}
 
 	var res database.User
-	database.DB.Model(&database.User{}).Where("username = ?", body.Username).Find(&res)
+	database.DB.Model(&database.User{}).
+		Where("username = ?", strings.ToLower(body.Username)).
+		Find(&res)
 
 	if res.ID != 0 {
 		if res.ID == uint64(id) {
@@ -126,10 +129,10 @@ func SetUsername(c *fiber.Ctx) error {
 	}
 
 	var result database.User
-	database.DB.Model(&result).Where("id = ?", int(id)).Update("username", body.Username)
+	database.DB.Model(&result).Where("id = ?", int(id)).Update("username", strings.ToLower(body.Username))
 
 	return c.JSON(response.SetUsername{
-		Username: body.Username,
+		Username: strings.ToLower(body.Username),
 		Message:  "Username set successfully",
 	})
 }

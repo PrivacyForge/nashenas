@@ -37,7 +37,7 @@ const router = createRouter({
           path: '/inbox',
           name: 'inbox',
           component: () => import('@/views/Inbox.vue'),
-          // beforeEnter: AuthMiddleware,
+          beforeEnter: AuthMiddleware,
         },
       ],
     },

@@ -130,9 +130,6 @@ onMounted(() => {
         <p class="text-center text-[#119af5] font-semibold">
           پیام شما رمزنگاری و به کاربر ارسال شد.
         </p>
-        <Button v-if="!userStore.isAuth" @click="$router.push({ name: 'auth' })"
-          >Create account</Button
-        >
       </template>
     </template>
   </Card>

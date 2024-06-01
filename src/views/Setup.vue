@@ -99,9 +99,9 @@ function importKeys(event: Event) {
 function usernameSubmit() {
   axios
     .post('/set-username', { username: username.value })
-    .then(() => {
+    .then(({ data }) => {
       state.value = 'key-question'
-      userStore.user.username = username.value
+      userStore.user.username = data.username
     })
     .catch((error) => {
       usernameErr.value = error.response.data.message
@@ -118,33 +118,37 @@ function usernameSubmit() {
     <template v-else>
       <template v-if="state === 'set-username'">
         <div class="relative">
-          <label class="font-semibold"> نام کاربری خود انتخاب کنید: </label>
+          <label class="font-semibold">
+            یک نام کاربر برای خود انتخاب کنید:
+          </label>
           <Input
             v-model="username"
             class="pl-7 my-4"
             placeholder="Username..."
             dir="ltr"
           />
-          <span class="absolute left-2 top-[52px]">@</span>
+          <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
         <Button @click="usernameSubmit()"> بعدی </Button>
       </template>
 
       <template v-if="state === 'key-question'">
-        <p class="pb-5 pt-3 text-center">آیا جفت کلید عمومی و خصوصی دارید؟</p>
+        <p class="pb-5 pt-3 text-center">
+          آیا از قبل جفت کلید عمومی و خصوصی دارید؟
+        </p>
         <div class="grid grid-cols-1 gap-y-2">
           <button
             class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
             @click="generateKeys"
           >
-            نه، لطفا یکی بساز.
+            ندارم لطفا بساز
           </button>
           <button
             class="text-[#119af5] py-2 rounded-md font-semibold"
             @click="FileInput.click()"
           >
-            بله، آپلود می‌کنم.
+            بله آپلود می‌کنم
           </button>
           <input
             ref="FileInput"

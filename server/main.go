@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -44,6 +46,17 @@ func main() {
 			query := strings.Split(update.Message.Text, " ")
 
 			if len(query) > 1 && query[1] == "otp" {
+
+				isAllow := slices.Contains(configs.AllowUsers, fmt.Sprintf("%v", update.Message.From.ID))
+
+				if !isAllow {
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Permission denied")
+					msg.ReplyToMessageID = update.Message.MessageID
+
+					telegram.Bot.Send(msg)
+					continue
+				}
+
 				database.DB.Where("telegram_userid = ?", update.Message.Chat.ID).Delete(&database.OTP{})
 				code := uuid.NewString()
 				database.DB.Create(&database.OTP{
@@ -51,8 +64,8 @@ func main() {
 					TelegramUserid: uint64(update.Message.Chat.ID),
 					Username:       update.Message.From.UserName,
 				})
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-					"Click button below to confirm your account.")
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Click button below to confirm your account.")
+
 				msg.ReplyToMessageID = update.Message.MessageID
 
 				url := configs.Url + "/confirm/" + code
@@ -66,7 +79,7 @@ func main() {
 				telegram.Bot.Send(msg)
 				continue
 			}
-			
+
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello")
 			msg.ReplyToMessageID = update.Message.MessageID
 

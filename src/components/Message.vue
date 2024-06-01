@@ -95,7 +95,7 @@ function Submit() {
     <Time :value="time" class="text-gray-400 text-end text-sm"></Time>
     <p
       v-if="quote?.content"
-      class="border-l-4 rounded-md border-l-blue-500 pl-2 py-2 mt-2"
+      class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2"
       style="background-color: rgba(137, 207, 240, 0.3)"
       quote="true"
       v-decrypt
