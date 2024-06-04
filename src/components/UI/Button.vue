@@ -10,6 +10,7 @@ defineProps<{
 
 const attrs = useAttrs()
 </script>
+
 <template>
   <button
     v-bind="attrs"

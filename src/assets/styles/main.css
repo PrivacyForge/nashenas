@@ -5,5 +5,5 @@
 @tailwind utilities;
 
 html {
-  @apply bg-[#f7f7f7] text-black font-[Vazirmatn] text-[#1f2328];
+  @apply bg-[#f7f7f7] font-[Vazirmatn] text-[#1f2328];
 }

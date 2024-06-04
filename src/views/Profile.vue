@@ -47,7 +47,7 @@ async function submit() {
   const encryptedMsg = await encrypt(
     message.value,
     user.publicKey!,
-    myPublicKey!
+    myPublicKey!,
   )
 
   submitLoading.value = true
@@ -143,5 +143,6 @@ onMounted(() => {
         <TelegramIcon class="mr-1" size="24" color="gray" />
       </a>
     </div>
+    <p dir="ltr">Open Source + E2E Encryption + Safe</p>
   </div>
 </template>

@@ -15,7 +15,7 @@ const myLink = computed(() => `${location.origin}/@${userStore.user.username}`)
 <template>
   <div class="lg:w-5/12 mx-auto px-4">
     <nav
-      class="flex justify-between bg-[#ffffff] p-5 my-4 rounded-lg shadow-sm"
+      class="flex justify-between bg-[#ffffff] px-5 py-4 my-4 rounded-lg shadow-sm"
     >
       <div class="cursor-pointer">
         <Settings />

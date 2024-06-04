@@ -8,7 +8,9 @@ import { exportKeys, importKeysFromFile } from '@/utils'
 
 import Modal from '@/components/UI/Modal.vue'
 import LoadingIcon from '@/components/icons/Loading.vue'
-import SettingsIcon from '@/components/icons/Settings.vue'
+
+import LockOpenIcon from '@/components/icons/LockOpen.vue'
+import LockCloseIcon from '@/components/icons/LockClose.vue'
 
 const userStore = useUserStore()
 
@@ -22,7 +24,7 @@ const hasKeys = computed(
     localStorage.getItem('receive_private_key') &&
     localStorage.getItem('receive_public_key') &&
     localStorage.getItem('send_private_key') &&
-    localStorage.getItem('send_public_key')
+    localStorage.getItem('send_public_key'),
 )
 
 async function generateKeys() {
@@ -81,7 +83,13 @@ function importHandler(event: Event) {
 </script>
 
 <template>
-  <SettingsIcon size="24" color="black" @click="visible = true" />
+  <LockCloseIcon
+    v-if="hasKeys"
+    size="30"
+    color="#4BB543"
+    @click="visible = true"
+  />
+  <LockOpenIcon v-else size="30" color="#FF5733" @click="visible = true" />
 
   <Modal v-model="visible">
     <template #header>
