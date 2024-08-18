@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    networks:
+      - DATABASE
+    volumes:
+      - type: volume
+        source: MONGO_DATA
+        target: /data/db
+      - type: volume
+        source: MONGO_CONFIG
+        target: /data/configdb
+  app:
+    container_name: app
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    env_file: .env
+    networks:
+      - DATABASE
+
+networks:
+  DATABASE:
+    name: DATABASE
+
+volumes:
+  MONGO_DATA:
+    name: MONGO_DATA
+  MONGO_CONFIG:
+    name: MONGO_CONFIG
