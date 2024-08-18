@@ -1,54 +1,93 @@
 package middlewares
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"net/url"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PrivacyForge/nashenas/configs"
 	"github.com/PrivacyForge/nashenas/response"
+	"github.com/PrivacyForge/nashenas/utils"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func OptionalBearerToken(c *fiber.Ctx) error {
-	return BearerToken(c, true)
+func sign(payload, key string) string {
+	skHmac := hmac.New(sha256.New, []byte("WebAppData"))
+	skHmac.Write([]byte(key))
+
+	impHmac := hmac.New(sha256.New, skHmac.Sum(nil))
+	impHmac.Write([]byte(payload))
+
+	return hex.EncodeToString(impHmac.Sum(nil))
 }
 
-func RequiredBearerToken(c *fiber.Ctx) error {
-	return BearerToken(c, false)
+func ValidateInitData(initData, token string, expIn time.Duration) error {
+	q, err := url.ParseQuery(initData)
+	if err != nil {
+		return err
+	}
+
+	var (
+		authDate time.Time
+		hash     string
+		pairs    = make([]string, 0, len(q))
+	)
+
+	for k, v := range q {
+		if k == "hash" {
+			hash = v[0]
+			continue
+		}
+		if k == "auth_date" {
+			if i, err := strconv.Atoi(v[0]); err == nil {
+				authDate = time.Unix(int64(i), 0)
+			}
+		}
+		pairs = append(pairs, k+"="+v[0])
+	}
+
+	if hash == "" {
+		return errors.New("hash is empty")
+	}
+
+	if expIn > 0 {
+		if authDate.IsZero() {
+			return errors.New("expired")
+		}
+
+		if authDate.Add(expIn).Before(time.Now()) {
+			return errors.New("expired")
+		}
+	}
+
+	sort.Strings(pairs)
+
+	if sign(strings.Join(pairs, "\n"), token) != hash {
+		return errors.New("sign error")
+	}
+	return nil
 }
 
-func BearerToken(c *fiber.Ctx, optional bool) error {
-	authHeader := c.Get("Authorization")
+func AuthMiddleware(c *fiber.Ctx) error {
+	token := configs.BotToken
+	initData := fmt.Sprint(c.Get("Authorization"))
+	expIn := 24 * time.Hour
 
-	if optional && authHeader == "" {
-		return c.Next()
-	} else if authHeader == "" && !optional {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
-			Message: "Unauthorized",
-		})
-	}
-
-	// Check if the Authorization header starts with "Bearer "
-	tokenParts := strings.Split(authHeader, " ")
-	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
-			Message: "Unauthorized",
-		})
-	}
-
-	token, err := jwt.Parse(tokenParts[1], func(token *jwt.Token) (interface{}, error) {
-		return []byte(configs.Secret), nil
-	})
+	err := ValidateInitData(initData, token, expIn)
 
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{
-			Message: "Unauthorized",
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(response.Error{Message: "invalid telegram initdata"})
 	}
 
-	claims, _ := token.Claims.(jwt.MapClaims)
-
-	c.Locals("id", claims["id"])
+	var init, _ = utils.Parse(initData)
+	c.Locals("userid", init.User.ID)
 
 	return c.Next()
 }

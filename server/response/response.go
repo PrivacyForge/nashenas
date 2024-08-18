@@ -37,7 +37,6 @@ type SendMessage struct {
 }
 
 type GetMe struct {
-	ID               uint64 `json:"id"`
 	Username         string `json:"username"`
 	Userid           uint64 `json:"userid"`
 	ReceivePublicKey string `json:"receive_public_key"`

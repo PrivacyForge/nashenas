@@ -7,14 +7,14 @@ import (
 )
 
 func DefineRoutes(app *fiber.App) {
-	app.Get("/", middlewares.RequiredBearerToken, handlers.HelloWorld)
-	app.Get("/me", middlewares.RequiredBearerToken, handlers.GetMe)
-	app.Get("/get-messages", middlewares.RequiredBearerToken, handlers.GetMessages)
-	app.Get("/get-key/:id", middlewares.RequiredBearerToken, handlers.GetPublicKey)
+	app.Get("/", middlewares.AuthMiddleware, handlers.HelloWorld)
+	
+	app.Get("/me", middlewares.AuthMiddleware, handlers.GetMe)
+	app.Post("/set-username", middlewares.AuthMiddleware, handlers.SetUsername)
+	app.Get("/get-messages", middlewares.AuthMiddleware, handlers.GetMessages)
 	app.Get("/profile/:username", handlers.GetProfile)
-	app.Get("/confirm/:otp", handlers.ConfirmOTP)
-	app.Post("/set-username", middlewares.RequiredBearerToken, handlers.SetUsername)
-	app.Post("/set-key", middlewares.RequiredBearerToken, handlers.SetPublicKey)
-	app.Post("/send-message", middlewares.OptionalBearerToken, handlers.SendMessage)
-	app.Post("/replay-message", middlewares.RequiredBearerToken, handlers.ReplayMessage)
+	app.Post("/send-message", middlewares.AuthMiddleware, handlers.SendMessage)
+	app.Get("/get-key/:id", middlewares.AuthMiddleware, handlers.GetPublicKey)
+	app.Post("/set-key", middlewares.AuthMiddleware, handlers.SetPublicKey)
+	app.Post("/replay-message", middlewares.AuthMiddleware, handlers.ReplayMessage)
 }

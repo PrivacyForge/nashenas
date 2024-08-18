@@ -1,6 +1,6 @@
+import type { NavigationGuard } from 'vue-router'
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
-import type { NavigationGuard } from 'vue-router'
 
 const middleware: NavigationGuard = async (to, from, next) => {
   const userStore = useUserStore()
@@ -21,8 +21,8 @@ const middleware: NavigationGuard = async (to, from, next) => {
         ? next()
         : next({ name: 'setup' })
     })
-    .catch(() => {
-      next({ name: 'auth' })
+    .catch((error) => {
+      next({ name: 'error' })
     })
 }
 

@@ -6,17 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type OTP struct {
-	gorm.Model
-	TelegramUserid uint64 `gorm:"size: 255"`
-	Username       string `gorm:"size: 255"`
-	Code           string `gorm:"size: 255"`
-}
-
 type User struct {
 	gorm.Model
 	ID               uint64    `gorm:"primaryKey"`
-	TelegramUserid   uint64    `gorm:"size: 255"`
+	Userid           uint64    `gorm:"size: 255"`
 	Username         string    `gorm:"size: 255"`
 	SendPublicKey    string    `gorm:"default:null"`
 	ReceivePublicKey string    `gorm:"default:null"`
@@ -36,11 +29,3 @@ type Message struct {
 	ParentID uint64    `gorm:"default:null"`
 	Replies  []Message `gorm:"foreignKey:ParentID"`
 }
-
-// type Waitlist struct {
-// 	gorm.Model
-// 	ID         uint64 `gorm:"primaryKey"`
-// 	TelegramId uint64 `gorm:"size: 255"`
-// 	TwitterId  string `gorm:"default:null"`
-// 	Accept     bool   `gorm:"size: 255"`
-// }

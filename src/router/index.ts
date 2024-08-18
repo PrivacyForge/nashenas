@@ -18,14 +18,9 @@ const router = createRouter({
       ],
     },
     {
-      path: "/auth",
-      name: "auth",
-      component: () => import("@/views/Auth.vue"),
-    },
-    {
-      path: "/confirm/:code",
-      name: "confirm",
-      component: () => import("@/views/Confirm.vue"),
+      path: "/error",
+      name: "error",
+      component: () => import("@/views/Error.vue"),
     },
     {
       path: "/setup",

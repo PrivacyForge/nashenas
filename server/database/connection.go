@@ -26,7 +26,6 @@ func InitConnection() error {
 }
 
 func migration() {
-	DB.AutoMigrate(&OTP{})
 	DB.AutoMigrate(&User{})
 	DB.AutoMigrate(&Message{})
 }

@@ -2,8 +2,6 @@ package configs
 
 import (
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -11,10 +9,7 @@ import (
 var DatabasePath string
 var Url string
 var ServerPort string
-var Secret string
 var BotToken string
-var AdminId int64
-var AllowUsers []string
 
 func LoadConfigs() {
 	if err := godotenv.Load(".env"); err != nil {
@@ -24,8 +19,5 @@ func LoadConfigs() {
 	ServerPort = os.Getenv("SERVER_PORT")
 	DatabasePath = os.Getenv("DATABASE_PATH")
 	BotToken = os.Getenv("BOT_TOKEN")
-	Secret = os.Getenv("SECRET")
 	Url = os.Getenv("URL")
-	AdminId, _ = strconv.ParseInt(os.Getenv("ADMIN_ID"), 10, 64)
-	AllowUsers = strings.Split(os.Getenv("ALLOW_USERS"), ",")
 }

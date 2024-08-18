@@ -7,95 +7,48 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PrivacyForge/nashenas/configs"
 	"github.com/PrivacyForge/nashenas/database"
 	"github.com/PrivacyForge/nashenas/request"
 	"github.com/PrivacyForge/nashenas/response"
-	"github.com/PrivacyForge/nashenas/telegram"
-	"github.com/PrivacyForge/nashenas/utils"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gofiber/fiber/v2"
 )
 
 func HelloWorld(c *fiber.Ctx) error {
-	id := c.Locals("id").(float64)
-
-	return c.SendString("Hello, World!" + fmt.Sprintf("%v", int(id)))
+	return c.SendString("Hello, World!")
 }
 
 func GetMe(c *fiber.Ctx) error {
-	id := c.Locals("id").(float64)
+	userid := c.Locals("userid").(int64)
 
 	var result database.User
-	database.DB.Where("id = ?", int(id)).Find(&result)
+	database.DB.Where("userid = ?", userid).Find(&result)
 
-	if result.ID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
-	}
-	return c.JSON(response.GetMe{
-		ID:               result.ID,
-		Username:         result.Username,
-		Userid:           result.TelegramUserid,
-		ReceivePublicKey: result.ReceivePublicKey,
-		SendPublicKey:    result.SendPublicKey,
-	})
-}
-
-func ConfirmOTP(c *fiber.Ctx) error {
-	otp := c.Params("otp")
-
-	var result database.OTP
-	database.DB.Where("code = ?", otp).Find(&result)
-
-	if result.ID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
-			Message: "OTP is invalid.",
-		})
-	}
-
-	database.DB.Where("code = ?", otp).Delete(&database.OTP{})
-
-	var res database.User
-	database.DB.Where("telegram_userid = ?", result.TelegramUserid).Find(&res)
-
-	// if user does not exist
-	if res.ID == 0 {
+	if result.Userid == 0 {
 		var newUser = database.User{
-			TelegramUserid:   result.TelegramUserid,
+			Userid:           uint64(userid),
 			Username:         "",
 			ReceivePublicKey: "",
 			SendPublicKey:    ""}
 
 		database.DB.Create(&newUser)
-
-		token, _ := utils.GenerateToken(newUser.ID)
-		var response = response.Confirm{
-			Token:            token,
-			ID:               newUser.ID,
-			Userid:           newUser.TelegramUserid,
+		return c.JSON(response.GetMe{
 			Username:         newUser.Username,
+			Userid:           uint64(userid),
 			ReceivePublicKey: newUser.ReceivePublicKey,
 			SendPublicKey:    newUser.SendPublicKey,
-		}
-		return c.JSON(response)
+		})
 	}
 
-	token, _ := utils.GenerateToken(res.ID)
-
-	var response = response.Confirm{
-		Token:            token,
-		ID:               res.ID,
-		Userid:           res.TelegramUserid,
-		Username:         res.Username,
-		ReceivePublicKey: res.ReceivePublicKey,
-		SendPublicKey:    res.SendPublicKey,
-	}
-
-	return c.JSON(response)
+	return c.JSON(response.GetMe{
+		Username:         result.Username,
+		Userid:           result.Userid,
+		ReceivePublicKey: result.ReceivePublicKey,
+		SendPublicKey:    result.SendPublicKey,
+	})
 }
 
 func SetUsername(c *fiber.Ctx) error {
-	id := c.Locals("id").(float64)
+	userid := c.Locals("userid").(int64)
 
 	var body request.SetUsername
 
@@ -112,12 +65,13 @@ func SetUsername(c *fiber.Ctx) error {
 	}
 
 	var res database.User
+
 	database.DB.Model(&database.User{}).
 		Where("username = ?", strings.ToLower(body.Username)).
 		Find(&res)
 
-	if res.ID != 0 {
-		if res.ID == uint64(id) {
+	if res.Userid != 0 {
+		if res.Userid == uint64(userid) {
 			return c.Status(fiber.StatusOK).JSON(response.Error{
 				Message: "This username was already set for you",
 			})
@@ -129,7 +83,7 @@ func SetUsername(c *fiber.Ctx) error {
 	}
 
 	var result database.User
-	database.DB.Model(&result).Where("id = ?", int(id)).Update("username", strings.ToLower(body.Username))
+	database.DB.Model(&result).Where("userid = ?", userid).Update("username", strings.ToLower(body.Username))
 
 	return c.JSON(response.SetUsername{
 		Username: strings.ToLower(body.Username),
@@ -138,7 +92,7 @@ func SetUsername(c *fiber.Ctx) error {
 }
 
 func SetPublicKey(c *fiber.Ctx) error {
-	id := c.Locals("id").(float64)
+	userid := c.Locals("userid").(int64)
 	var body request.SetPublicKey
 
 	if err := c.BodyParser(&body); err != nil {
@@ -154,7 +108,7 @@ func SetPublicKey(c *fiber.Ctx) error {
 	var result database.User
 	database.DB.
 		Model(&result).
-		Where("id = ?", id).
+		Where("userid = ?", userid).
 		Update("receive_public_key", body.ReceivePublicKey).
 		Update("send_public_key", body.SendPublicKey)
 
@@ -179,7 +133,7 @@ func GetProfile(c *fiber.Ctx) error {
 	var result database.User
 	database.DB.Where("username = ?", username).Find(&result)
 
-	if result.ID == 0 {
+	if result.Userid == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(response.Error{
 			Message: "User Not found",
 		})
@@ -193,13 +147,7 @@ func GetProfile(c *fiber.Ctx) error {
 }
 
 func SendMessage(c *fiber.Ctx) error {
-	id := c.Locals("id")
-
-	var isAnonymouse bool = false
-
-	if id == nil {
-		isAnonymouse = true
-	}
+	userid := c.Locals("userid")
 
 	var body request.SendMessage
 
@@ -213,40 +161,22 @@ func SendMessage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
 
-	var result database.User
-	database.DB.Where("id = ?", body.Id).Find(&result)
+	var targetUser database.User
+	database.DB.Where("id = ?", body.Id).Find(&targetUser)
 
-	if result.ID == 0 {
+	if targetUser.ID == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(response.Error{Message: "User not found"})
 	}
 
-	if isAnonymouse {
-		database.DB.Create(&database.Message{
-			Content: body.Message,
-			ToID:    body.Id,
-			OwnerID: body.Id,
-			Time:    time.Now()})
-	} else {
-		database.DB.Create(&database.Message{
-			Content: body.Message,
-			FromID:  uint64(id.(float64)),
-			ToID:    body.Id,
-			OwnerID: body.Id,
-			Time:    time.Now()})
-	}
+	var sourceUser database.User
+	database.DB.Where("userid = ?", userid).Find(&sourceUser)
 
-	// send alarm by telegram bot
-	msg := tgbotapi.NewMessage(int64(result.TelegramUserid), "You received a new message.")
-
-	url := configs.Url + "/inbox"
-
-	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
-		),
-	)
-
-	telegram.Bot.Send(msg)
+	database.DB.Create(&database.Message{
+		Content: body.Message,
+		FromID:  sourceUser.ID,
+		ToID:    body.Id,
+		OwnerID: body.Id,
+		Time:    time.Now()})
 
 	return c.JSON(response.SendMessage{Message: "The message was sent"})
 }
@@ -255,7 +185,7 @@ func GetPublicKey(c *fiber.Ctx) error {
 	messageId, _ := strconv.ParseInt(c.Params("id"), 10, 64)
 
 	var result database.Message
-	database.DB.Where("id = ?", uint64(messageId)).Find(&result)
+	database.DB.Where("id = ?", messageId).Find(&result)
 
 	var res database.User
 	database.DB.Where("id = ?", result.FromID).Find(&res)
@@ -268,7 +198,7 @@ func GetPublicKey(c *fiber.Ctx) error {
 }
 
 func ReplayMessage(c *fiber.Ctx) error {
-	id := c.Locals("id")
+	userid := c.Locals("userid")
 
 	var body request.ReplayMessage
 
@@ -279,44 +209,34 @@ func ReplayMessage(c *fiber.Ctx) error {
 	var result database.Message
 	database.DB.Where("id = ?", body.MessageId).Find(&result)
 
+	var user database.User
+	database.DB.Where("userid = ?", userid).Find(&user)
+
 	database.DB.Create(&database.Message{
 		Content:  body.Message,
-		FromID:   uint64(id.(float64)),
+		FromID:   user.ID,
 		ToID:     result.FromID,
 		OwnerID:  result.OwnerID,
 		ParentID: result.ID,
 		Time:     time.Now()})
 
-	var res database.User
-	database.DB.Where("id = ?", result.FromID).Find(&res)
-
-	// send alarm by telegram bot
-	msg := tgbotapi.NewMessage(int64(res.TelegramUserid), "You received a new message.")
-
-	url := configs.Url + "/inbox"
-
-	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL("Show", url),
-		),
-	)
-
-	telegram.Bot.Send(msg)
-
 	return c.SendString("Ok")
 }
 
 func GetMessages(c *fiber.Ctx) error {
-	id := c.Locals("id").(float64)
+	userid := c.Locals("userid").(int64)
+
+	var user database.User
+	database.DB.Where("userid = ?", userid).Find(&user)
 
 	var result []database.Message
+	database.DB.Where("to_id = ?", user.ID).Find(&result)
 
-	database.DB.Where("to_id = ?", uint64(id)).Find(&result)
-
-	var messages []response.GetMessages
+	messages := []response.GetMessages{}
 
 	for i := 0; i < len(result); i++ {
-		var owner bool = result[i].OwnerID == uint64(id)
+		var owner bool = result[i].OwnerID == uint64(userid)
+
 		if result[i].ParentID != 0 {
 			var res database.Message
 			database.DB.Where("id = ?", result[i].ParentID).Find(&res)

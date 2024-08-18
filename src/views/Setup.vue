@@ -121,12 +121,7 @@ function usernameSubmit() {
           <label class="font-semibold">
             یک نام کاربر برای خود انتخاب کنید:
           </label>
-          <Input
-            v-model="username"
-            class="pl-7 my-4"
-            placeholder="Username..."
-            dir="ltr"
-          />
+          <Input v-model="username" class="pl-7 my-4" placeholder="Username..." dir="ltr" />
           <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
@@ -135,27 +130,17 @@ function usernameSubmit() {
 
       <template v-if="state === 'key-question'">
         <p class="pb-5 pt-3 text-center">
-          آیا از قبل جفت کلید عمومی و خصوصی دارید؟
+          توی این مرحله، ما برات یه جفت کلید برای رمزنگاری پیام‌های ارسالی و دریافتی می‌سازیم. اگه از قبل کلید داری
+          می‌تونی آپلود کنی و اگه نداری برات می‌سازیم.
         </p>
         <div class="grid grid-cols-1 gap-y-2">
-          <button
-            class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-            @click="generateKeys"
-          >
+          <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeys">
             ندارم لطفا بساز
           </button>
-          <button
-            class="text-[#119af5] py-2 rounded-md font-semibold"
-            @click="FileInput.click()"
-          >
-            بله آپلود می‌کنم
+          <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
+            آپلود می‌کنم
           </button>
-          <input
-            ref="FileInput"
-            type="file"
-            class="hidden"
-            @change="importKeys"
-          />
+          <input ref="FileInput" type="file" class="hidden" @change="importKeys" />
         </div>
       </template>
 
@@ -168,13 +153,10 @@ function usernameSubmit() {
 
       <template v-if="state === 'key-generation'">
         <p class="text-center text-green-600 mt-2 mb-4">
-          کلیدهای شما ساخته شد.
+          کلیدهای شما با موفقیت ساخته شد.
         </p>
         <Button @click="$router.push({ name: 'inbox' })"> ادامه </Button>
-        <p
-          class="text-center mt-4 text-[#119af5] font-semibold"
-          @click="exportHandler"
-        >
+        <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
           دانلود کلیدها
         </p>
       </template>
