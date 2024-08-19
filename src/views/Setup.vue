@@ -20,6 +20,7 @@ const username = ref(userStore.user.username)
 const usernameErr = ref('')
 
 const loading = ref(false)
+const delay = ref(false)
 const FileInput = ref<any>()
 
 const state = ref<
@@ -64,6 +65,10 @@ function exportHandler() {
   window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
     window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, privateKey2) => {
       navigator.clipboard.writeText(`${privateKey}\n\n\n${privateKey2}`)
+      delay.value = true
+      setTimeout(() => {
+        delay.value = false
+      }, 2000);
     })
   })
   state.value = 'key-generation'
@@ -172,7 +177,7 @@ function done() {
         </p>
         <Button @click="done()"> ادامه </Button>
         <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
-          کپی کردن
+          {{ !delay ? 'کپی کردن' : 'کپی شد' }}
         </p>
       </template>
     </template>
