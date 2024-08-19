@@ -88,18 +88,11 @@ function Submit() {
 }
 </script>
 <template>
-  <div
-    class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
-    :class="mark && ['border-2 border-[#119af5]']"
-  >
+  <div class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
+    :class="mark && ['border-2 border-[#119af5]']">
     <Time :value="time" class="text-gray-400 text-end text-sm"></Time>
-    <p
-      v-if="quote?.content"
-      class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2"
-      style="background-color: rgba(137, 207, 240, 0.3)"
-      quote="true"
-      v-decrypt
-    >
+    <p v-if="quote?.content" class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2"
+      style="background-color: rgba(137, 207, 240, 0.3)" quote="true" v-decrypt>
       {{ quote.content }}
     </p>
 
@@ -114,16 +107,9 @@ function Submit() {
       </div>
 
       <div v-else class="flex flex-col mt-4">
-        <Textarea
-          v-model="replayMessage"
-          placeholder="پاسخ شما..."
-          v-focus
-        ></Textarea>
+        <Textarea v-model="replayMessage" placeholder="پاسخ شما..." v-focus></Textarea>
         <Button :block="true" class="mt-4" @click="Submit">ارسال</Button>
-        <p
-          class="text-center pt-4 text-[#119af5] font-bold"
-          @click="replaying = false"
-        >
+        <p class="text-center pt-4 text-[#119af5] font-bold cursor-pointer" @click="replaying = false">
           بیخیال
         </p>
       </div>

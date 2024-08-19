@@ -78,7 +78,7 @@ func ValidateInitData(initData, token string, expIn time.Duration) error {
 func AuthMiddleware(c *fiber.Ctx) error {
 	token := configs.BotToken
 	initData := fmt.Sprint(c.Get("Authorization"))
-	expIn := 24 * time.Hour
+	expIn := 168 * time.Hour
 
 	err := ValidateInitData(initData, token, expIn)
 
