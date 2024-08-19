@@ -22,7 +22,7 @@ const FileInput = ref<any>()
 
 const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
->('key-generation')
+>('set-username')
 
 async function generateKeys() {
   loading.value = true
