@@ -29,18 +29,17 @@ const replaySent = ref(false)
 const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
     try {
-      let privateKey, decryptedMsg
-      privateKey = localStorage.getItem('receive_private_key')
-      decryptedMsg = await decrypt(
-        el.innerText,
-        privateKey!,
-        false
-      )
-
-      el.innerText = decryptedMsg
+      window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
+        const decryptedMsg = await decrypt(
+          el.innerText,
+          privateKey!,
+          false
+        )
+        el.innerText = decryptedMsg
+      })
     } catch (error) {
       alert(error)
-      el.innerText = 'خطا در رمزگشایی.'
+      el.innerText = 'خطا در رمزگشایی!'
     }
   },
 }
@@ -55,13 +54,15 @@ function Submit() {
   if (!replayMessage.value) return
 
   axios.get(`/get-key/${props.id}`).then(async ({ data: key }) => {
-    let publicKey, encryptedMsg
+    let encryptedMsg
     if (props.owner) {
-      publicKey = localStorage.getItem('receive_public_key')
-      encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
+      window.Telegram.WebApp.CloudStorage.getItem("receive_public_key", async (error, publicKey) => {
+        encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
+      })
     } else {
-      publicKey = localStorage.getItem('send_public_key')
-      encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
+      window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, publicKey) => {
+        encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
+      })
     }
 
     axios
