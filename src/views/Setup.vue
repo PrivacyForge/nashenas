@@ -115,6 +115,7 @@ function usernameSubmit() {
       <LoadingIcon color="#119af5" size="26px" />
     </div>
 
+
     <template v-else>
       <template v-if="state === 'set-username'">
         <div class="relative">
