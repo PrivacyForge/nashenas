@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PrivacyForge/nashenas/database"
+	"github.com/PrivacyForge/nashenas/redis"
 	"github.com/PrivacyForge/nashenas/request"
 	"github.com/PrivacyForge/nashenas/response"
 	"github.com/gofiber/fiber/v2"
@@ -177,6 +179,11 @@ func SendMessage(c *fiber.Ctx) error {
 		ToID:    body.Id,
 		OwnerID: body.Id,
 		Time:    time.Now()})
+
+	err := redis.Client.Publish("message", fmt.Sprint(targetUser.Userid))
+	if err != nil {
+		log.Fatalf("Failed to publish message: %v", err)
+	}
 
 	return c.JSON(response.SendMessage{Message: "The message was sent"})
 }
