@@ -47,7 +47,7 @@ async function submit() {
   const encryptedMsg = await encrypt(
     message.value,
     user.publicKey!,
-    myPublicKey!,
+    // myPublicKey!,
   )
 
   submitLoading.value = true
@@ -87,7 +87,7 @@ onMounted(() => {
 
             userStore.isAuth = true
           })
-          .catch(() => {})
+          .catch(() => { })
       })
       .catch(() => {
         notFoundUser.value = true
@@ -110,20 +110,12 @@ onMounted(() => {
     <template v-else>
       <template v-if="!sent">
         <template v-if="notFoundUser">
-          <p
-            class="text-center text-[#119af5] font-semibold"
-            v-text="errorMessage"
-          />
+          <p class="text-center text-[#119af5] font-semibold" v-text="errorMessage" />
         </template>
         <template v-else>
           <p>برای کاربر {{ $route.params.username }} یه پیام ناشناس بنویس...</p>
           <Textarea v-model="message" placeholder="متن..."></Textarea>
-          <Button
-            :disabled="message.length < 3"
-            :loading="submitLoading"
-            @click="submit"
-            >ارسال پیام</Button
-          >
+          <Button :disabled="message.length < 3" :loading="submitLoading" @click="submit">ارسال پیام</Button>
         </template>
       </template>
       <template v-else>

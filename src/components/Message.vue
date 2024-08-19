@@ -48,6 +48,7 @@ const vDecrypt = {
 
       el.innerText = decryptedMsg
     } catch (error) {
+      alert(error)
       el.innerText = 'خطا در رمزگشایی.'
     }
   },
