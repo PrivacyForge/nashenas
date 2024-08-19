@@ -89,7 +89,7 @@ onMounted(() => {
 
             if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
           })
-          .catch(() => {})
+          .catch(() => { })
       })
       .catch(() => {
         notFoundUser.value = true
@@ -121,9 +121,10 @@ onMounted(() => {
         </template>
       </template>
       <template v-else>
-        <p class="text-center text-[#119af5] font-semibold">
+        <p class="text-center font-semibold">
           پیام شما رمزنگاری و به کاربر ارسال شد.
         </p>
+        <router-link class="text-[#119af5] text-center" to="/inbox">صفحه اصلی</router-link>
       </template>
     </template>
   </Card>

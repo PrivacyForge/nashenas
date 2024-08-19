@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
@@ -9,10 +10,11 @@ import { generateKeyPair } from '@/cryptography/RSA'
 import Card from '@/components/UI/Card.vue'
 import Input from '@/components/UI/Input.vue'
 import Button from '@/components/UI/Button.vue'
-import CopyText from '@/components/UI/CopyText.vue'
 import LoadingIcon from '@/components/icons/Loading.vue'
 
 const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
 
 const username = ref(userStore.user.username)
 const usernameErr = ref('')
@@ -112,6 +114,11 @@ function usernameSubmit() {
       usernameErr.value = error.response.data.message
     })
 }
+
+function done() {
+  if (route.query.next) router.push({ name: "profile", params: { username: route.query.next as string } })
+  else router.push({ name: 'inbox' })
+}
 </script>
 <template>
   <Card class="grid grid-cols-1 m-4">
@@ -163,7 +170,7 @@ function usernameSubmit() {
         <p class="text-center text-green-600 mt-2 mb-4">
           کلیدهای رمزنگاری تو با موفقیت ساخته شد.
         </p>
-        <Button @click="$router.push({ name: 'inbox' })"> ادامه </Button>
+        <Button @click="done()"> ادامه </Button>
         <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
           کپی کردن
         </p>
