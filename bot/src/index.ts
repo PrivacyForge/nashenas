@@ -1,7 +1,5 @@
 import 'dotenv/config'
-import { Telegraf } from 'telegraf'
 import { handleCommands } from './commands/commands'
-import { redisClient } from './services/redis'
 import { initiateRedisEventsListener } from './events'
 import { bot } from './services/telegram'
 
@@ -14,14 +12,16 @@ async function main() {
         new Error('WEB_APP_URL Not found!, initiating the bot'),
       )
 
-    await redisClient.connect()
-
     handleCommands()
     initiateRedisEventsListener()
 
-    bot.launch().then(() => console.log('bot launched'))
-    process.once('SIGINT', () => bot.stop('SIGINT'))
-    process.once('SIGTERM', () => bot.stop('SIGTERM'))
+    bot.launch()
+    process.once('SIGINT', async () => {
+      bot.stop('SIGINT')
+    })
+    process.once('SIGTERM', async () => {
+      bot.stop('SIGTERM')
+    })
     return bot
   } catch (error) {
     console.log(error)
