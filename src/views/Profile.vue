@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
 import { encrypt } from '@/cryptography'
@@ -16,6 +16,7 @@ import TelegramIcon from '@/components/icons/Telegram.vue'
 const userStore = useUserStore()
 
 const route = useRoute()
+const router = useRouter()
 
 const message = ref('')
 const username = route.params.username
@@ -84,10 +85,11 @@ onMounted(() => {
             userStore.user.username = data.username
             userStore.user.receivePublicKey = data.receive_public_key
             userStore.user.sendPublicKey = data.send_public_key
-
             userStore.isAuth = true
+
+            if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
           })
-          .catch(() => { })
+          .catch(() => {})
       })
       .catch(() => {
         notFoundUser.value = true

@@ -14,7 +14,7 @@ type RedisClient struct {
 
 var Client RedisClient
 
-func NewRedisClient(addr, password string, db int) error {
+func InitRedisClient(addr, password string, db int) error {
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,

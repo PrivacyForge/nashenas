@@ -20,10 +20,10 @@ function copy() {
   delay.value = true
   setTimeout(() => {
     delay.value = false
-  }, 1500)
+  }, 2000)
 }
 </script>
 <template>
   <button v-if="!delay" v-bind="attrs" v-text="text" @click="copy" />
-  <span v-else>کپی شد!</span>
+  <div class="text-center" v-else>کپی شد!</div>
 </template>

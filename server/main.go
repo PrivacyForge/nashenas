@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	err := redis.NewRedisClient("localhost:6379", "", 0)
+	err := redis.InitRedisClient("localhost:6379", "", 0)
 	if err != nil {
 		log.Fatalf("Failed to initialize Redis client: %v", err)
 	}

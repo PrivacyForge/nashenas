@@ -9,6 +9,7 @@ import { generateKeyPair } from '@/cryptography/RSA'
 import Card from '@/components/UI/Card.vue'
 import Input from '@/components/UI/Input.vue'
 import Button from '@/components/UI/Button.vue'
+import CopyText from '@/components/UI/CopyText.vue'
 import LoadingIcon from '@/components/icons/Loading.vue'
 
 const userStore = useUserStore()
@@ -21,7 +22,7 @@ const FileInput = ref<any>()
 
 const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
->('set-username')
+>('key-generation')
 
 async function generateKeys() {
   loading.value = true
@@ -58,7 +59,11 @@ async function generateKeys() {
 }
 
 function exportHandler() {
-  exportKeys()
+  window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
+    window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, privateKey2) => {
+      navigator.clipboard.writeText(`${privateKey}\n\n\n${privateKey2}`)
+    })
+  })
   state.value = 'key-generation'
 }
 
@@ -120,27 +125,29 @@ function usernameSubmit() {
       <template v-if="state === 'set-username'">
         <div class="relative">
           <label class="font-semibold">
-            یک نام کاربر برای خود انتخاب کنید:
+            یه نام کاربر برای خودت انتخاب کن:
           </label>
           <Input v-model="username" class="pl-7 my-4" placeholder="Username..." dir="ltr" />
           <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
         <Button @click="usernameSubmit()"> بعدی </Button>
+        <p class="mt-5">اگه قصد داری آیدیت ناشناس باشه یه مقدار رندوم رو وارد کن.</p>
       </template>
 
       <template v-if="state === 'key-question'">
         <p class="pb-5 pt-3 text-center">
-          توی این مرحله، ما برات یه جفت کلید برای رمزنگاری پیام‌های ارسالی و دریافتی می‌سازیم. اگه از قبل کلید داری
-          می‌تونی آپلود کنی و اگه نداری برات می‌سازیم.
+          توی این مرحله، ما برات یه جفت کلید RSA برای رمزنگاری پیام‌های ارسالی و دریافتی می‌سازیم. در آینده امکان اینکه
+          خودت کلیدت رو بسازی و وارد کنی هم اضافه میشه. اینم یادت باشه که کلید private تو هیچوقت سمت هیچ سروری ارسال
+          نمیشه و تمام فرایند رمزنگاری سمت تلگرام انجام میشه.
         </p>
         <div class="grid grid-cols-1 gap-y-2">
           <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeys">
-            ندارم لطفا بساز
+            متوجه شدم
           </button>
-          <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
+          <!-- <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
             آپلود می‌کنم
-          </button>
+          </button> -->
           <input ref="FileInput" type="file" class="hidden" @change="importKeys" />
         </div>
       </template>
@@ -154,11 +161,11 @@ function usernameSubmit() {
 
       <template v-if="state === 'key-generation'">
         <p class="text-center text-green-600 mt-2 mb-4">
-          کلیدهای شما با موفقیت ساخته شد.
+          کلیدهای رمزنگاری تو با موفقیت ساخته شد.
         </p>
         <Button @click="$router.push({ name: 'inbox' })"> ادامه </Button>
         <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
-          دانلود کلیدها
+          کپی کردن
         </p>
       </template>
     </template>
