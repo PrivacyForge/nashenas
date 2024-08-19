@@ -30,21 +30,12 @@ const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
     try {
       let privateKey, decryptedMsg
-      if (props.owner) {
-        privateKey = localStorage.getItem('receive_private_key')
-        decryptedMsg = await decrypt(
-          el.innerText,
-          privateKey!,
-          el.getAttribute('quote') == 'true'
-        )
-      } else {
-        privateKey = localStorage.getItem('send_private_key')
-        decryptedMsg = await decrypt(
-          el.innerText,
-          privateKey!,
-          el.getAttribute('quote') == 'true'
-        )
-      }
+      privateKey = localStorage.getItem('receive_private_key')
+      decryptedMsg = await decrypt(
+        el.innerText,
+        privateKey!,
+        false
+      )
 
       el.innerText = decryptedMsg
     } catch (error) {
@@ -101,10 +92,10 @@ function Submit() {
 
     <template v-if="canReplay">
       <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-        <div class="flex items-center cursor-pointer" @click="replaying = true">
+        <!-- <div class="flex items-center cursor-pointer" @click="replaying = true">
           <span class="ml-1 text-sm">پاسخ</span>
           <ReplyIcon size="20" color="#9CA38F" />
-        </div>
+        </div> -->
       </div>
 
       <div v-else class="flex flex-col mt-4">
