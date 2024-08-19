@@ -19,13 +19,7 @@ const loading = ref(false)
 
 const FileInput = ref<any>()
 
-const hasKeys = computed(
-  () =>
-    localStorage.getItem('receive_private_key') &&
-    localStorage.getItem('receive_public_key') &&
-    localStorage.getItem('send_private_key') &&
-    localStorage.getItem('send_public_key'),
-)
+const hasKeys = true
 
 async function generateKeys() {
   loading.value = true
@@ -34,12 +28,13 @@ async function generateKeys() {
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
     receivePublicKey = publicKey
-    localStorage.setItem('receive_private_key', privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", privateKey)
+
   })
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
     sendPublicKey = publicKey
-    localStorage.setItem('send_private_key', privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", privateKey)
   })
 
   axios
@@ -51,8 +46,8 @@ async function generateKeys() {
       userStore.user.sendPublicKey = data.send_public_key
       userStore.user.receivePublicKey = data.receive_public_key
 
-      localStorage.setItem('send_public_key', data.send_public_key)
-      localStorage.setItem('receive_public_key', data.receive_public_key)
+      window.Telegram.WebApp.CloudStorage.setItem("send_public_key", data.send_public_key)
+      window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", data.receive_public_key)
     })
     .finally(() => {
       loading.value = false
@@ -64,8 +59,9 @@ function importHandler(event: Event) {
   const file = event.target!.files[0] as File
 
   importKeysFromFile(file).then((keys) => {
-    localStorage.setItem('send_private_key', keys.sendPrivateKey)
-    localStorage.setItem('receive_private_key', keys.receivePrivateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", keys.sendPrivateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", keys.receivePrivateKey)
+
     axios
       .post('/set-key', {
         send_public_key: keys.sendPublicKey,
@@ -75,20 +71,15 @@ function importHandler(event: Event) {
         userStore.user.sendPublicKey = data.send_public_key
         userStore.user.receivePublicKey = data.receive_public_key
 
-        localStorage.setItem('send_public_key', data.send_public_key)
-        localStorage.setItem('receive_public_key', data.receive_public_key)
+        window.Telegram.WebApp.CloudStorage.setItem("send_public_key", data.send_public_key)
+        window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", data.receive_public_key)
       })
   })
 }
 </script>
 
 <template>
-  <LockCloseIcon
-    v-if="hasKeys"
-    size="30"
-    color="#4BB543"
-    @click="visible = true"
-  />
+  <LockCloseIcon v-if="hasKeys" size="30" color="#4BB543" @click="visible = true" />
   <LockOpenIcon v-else size="30" color="#FF5733" @click="visible = true" />
 
   <Modal v-model="visible">
@@ -96,12 +87,7 @@ function importHandler(event: Event) {
       <h3 class="font-bold text-lg">کلیدهای امنیتی</h3>
     </template>
     <template #body>
-      <input
-        ref="FileInput"
-        type="file"
-        class="hidden"
-        @change="importHandler"
-      />
+      <input ref="FileInput" type="file" class="hidden" @change="importHandler" />
 
       <template v-if="!loading">
         <div v-if="hasKeys">
@@ -110,23 +96,14 @@ function importHandler(event: Event) {
           </p>
           <div class="grid grid-cols-1 gap-y-2">
             <div class="grid grid-cols-2 gap-x-2">
-              <button
-                class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-                @click="exportKeys"
-              >
+              <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="exportKeys">
                 دانلود
               </button>
-              <button
-                class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-                @click="FileInput.click()"
-              >
+              <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="FileInput.click()">
                 آپلود
               </button>
             </div>
-            <button
-              class="text-[#119af5] py-2 rounded-md font-semibold"
-              @click="generateKeys"
-            >
+            <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="generateKeys">
               می‌خواهم مجددا جفت کلید بسازم.
             </button>
           </div>
@@ -136,16 +113,10 @@ function importHandler(event: Event) {
             درحال حاضر هیچ کلیدی ندارید.
           </p>
           <div class="grid grid-cols-1 gap-y-2">
-            <button
-              class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-              @click="generateKeys"
-            >
+            <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeys">
               ساختن
             </button>
-            <button
-              class="text-[#119af5] py-2 rounded-md font-semibold"
-              @click="FileInput.click()"
-            >
+            <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
               آپلود می‌کنم.
             </button>
           </div>

@@ -29,14 +29,14 @@ async function generateKeys() {
   let receivePublicKey: string, sendPublicKey: string
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
-    localStorage.setItem('receive_private_key', privateKey)
-    localStorage.setItem('receive_public_key', publicKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", publicKey)
     receivePublicKey = publicKey
   })
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
-    localStorage.setItem('send_private_key', privateKey)
-    localStorage.setItem('send_public_key', publicKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_public_key", publicKey)
     sendPublicKey = publicKey
   })
 
@@ -76,11 +76,11 @@ function importKeys(event: Event) {
       sendPublicKey,
     } = extractKeys(rawData)
 
-    localStorage.setItem('receive_private_key', receivePrivateKey)
-    localStorage.setItem('receive_public_key', receivePublicKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", receivePrivateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", receivePublicKey)
 
-    localStorage.setItem('send_private_key', sendPrivateKey)
-    localStorage.setItem('send_public_key', sendPublicKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", sendPrivateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("send_public_key", sendPublicKey)
 
     axios
       .post('/set-key', {
