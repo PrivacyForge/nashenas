@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.4",
+    "redis": "^4.7.0",
     "telegraf": "^4.16.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"

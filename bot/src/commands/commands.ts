@@ -1,7 +1,8 @@
-import { Context, Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { START_MESSAGE } from '../messages'
+import { bot } from '../services/telegram'
 
-export const handleCommands = (bot: Telegraf<Context>) => {
+export const handleCommands = () => {
   const WEB_APP_URL = process.env.WEB_APP_URL!
 
   bot.telegram.setMyCommands([
