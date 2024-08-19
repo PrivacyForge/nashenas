@@ -1,7 +1,8 @@
 import 'dotenv/config'
 import { Telegraf } from 'telegraf'
-import { handleCommands } from './bot/commands'
-;(async function main() {
+import { handleCommands } from './commands/commands'
+
+async function main() {
   try {
     const BOT_TOKEN = process.env.BOT_TOKEN
     const WEB_APP_URL = process.env.WEB_APP_URL
@@ -15,7 +16,6 @@ import { handleCommands } from './bot/commands'
       )
 
     const bot = new Telegraf(BOT_TOKEN)
-    console.log('Bot initiated')
     handleCommands(bot)
 
     bot.launch().then(() => console.log('bot launched'))
@@ -25,4 +25,5 @@ import { handleCommands } from './bot/commands'
   } catch (error) {
     console.log(error)
   }
-})()
+}
+main()
