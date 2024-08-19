@@ -7,12 +7,15 @@ import (
 	"github.com/PrivacyForge/nashenas/configs"
 	"github.com/PrivacyForge/nashenas/database"
 	"github.com/PrivacyForge/nashenas/routes"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
 	configs.LoadConfigs()
 
 	app := fiber.New()
+	
+	app.Use(logger.New())
 
 	if err := database.InitConnection(); err != nil {
 		panic("database connection failed.")
@@ -23,7 +26,7 @@ func main() {
 		AllowHeaders: "*",
 	}))
 
-	routes.DefineRoutes(app)	
+	routes.DefineRoutes(app)
 
 	app.Listen(":" + configs.ServerPort)
 }
