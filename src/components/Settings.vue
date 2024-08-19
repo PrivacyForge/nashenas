@@ -79,8 +79,8 @@ function importHandler(event: Event) {
 </script>
 
 <template>
-  <LockCloseIcon v-if="hasKeys" size="30" color="#4BB543" @click="visible = true" />
-  <LockOpenIcon v-else size="30" color="#FF5733" @click="visible = true" />
+  <LockCloseIcon v-if="hasKeys" size="30" color="#4BB543" />
+  <LockOpenIcon v-else size="30" color="#FF5733" />
 
   <Modal v-model="visible">
     <template #header>
