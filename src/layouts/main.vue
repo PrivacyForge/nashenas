@@ -18,7 +18,7 @@ const myLink = computed(() => `https://t.me/nashenase2ebot?start=${userStore.use
       <div class="cursor-pointer">
         <Settings />
       </div>
-      <CopyText text="لینک من" :copy="myLink" class="text-[#119af5] test- font-semibold text-end" />
+      <CopyText text="کپی لینک" :copy="myLink" class="text-[#119af5] test- font-semibold text-end" />
     </nav>
     <hr class="my-1" />
     <RouterView />

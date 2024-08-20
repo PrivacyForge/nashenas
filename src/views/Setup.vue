@@ -142,7 +142,7 @@ function done() {
           <Input v-model="username" class="pl-7 my-4" placeholder="Username..." dir="ltr" />
           <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
-        <p v-if="usernameErr" class="text-red-500 mt-2" v-text="usernameErr" />
+        <p v-if="usernameErr" class="text-red-500 my-2" v-text="usernameErr" />
         <Button @click="usernameSubmit()"> بعدی </Button>
         <p class="mt-5">اگه قصد داری آیدیت ناشناس باشه یه مقدار رندوم رو وارد کن.</p>
       </template>

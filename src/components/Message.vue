@@ -92,7 +92,7 @@ function Submit() {
   <div class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
     :class="mark && ['border-2 border-[#119af5]']">
     <Time :value="time" class="text-gray-400 text-end text-sm"></Time>
-    <p v-if="quote?.content" class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2"
+    <p v-if="quote?.content" class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2 truncate"
       style="background-color: rgba(137, 207, 240, 0.3)" quote="true" v-decrypt>
       {{ quote.content }}
     </p>
