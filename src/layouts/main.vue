@@ -9,7 +9,7 @@ import CopyText from '@/components/UI/CopyText.vue'
 
 const userStore = useUserStore()
 
-const myLink = computed(() => `https://t.me/nashenase2ebot?start=${userStore.user.username}`)
+const myLink = computed(() => `https://t.me/E2EChatbot?start=${userStore.user.username}`)
 </script>
 
 <template>
