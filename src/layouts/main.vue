@@ -12,6 +12,7 @@ const userStore = useUserStore()
 const myLink = computed(() => `https://t.me/E2EChatbot?start=${userStore.user.username}`)
 onMounted(() => {
   window.Telegram.WebApp.expand()
+  window.Telegram.WebApp.disableVerticalSwipes()
 }),
 </script>
 
