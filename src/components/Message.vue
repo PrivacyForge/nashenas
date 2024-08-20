@@ -31,23 +31,29 @@ const vDecrypt = {
     try {
       const isQuote = !!el.getAttribute('quote')
       if (props.owner) {
-        window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
-          const decryptedMsg = await decryptE2EPacket(
-            privateKey!,
-            props.sender_public_key,
-            el.innerText,
-          )
-          el.innerText = decryptedMsg!
-        })
+        window.Telegram.WebApp.CloudStorage.getItem(
+          'receive_private_key',
+          async (error, privateKey) => {
+            const decryptedMsg = await decryptE2EPacket(
+              privateKey!,
+              props.sender_public_key,
+              el.innerText,
+            )
+            el.innerText = decryptedMsg!
+          },
+        )
       } else {
-        window.Telegram.WebApp.CloudStorage.getItem("send_private_key", async (error, privateKey) => {
-          const decryptedMsg = await decryptE2EPacket(
-            privateKey!,
-            props.sender_public_key,
-            el.innerText,
-          )
-          el.innerText = decryptedMsg!
-        })
+        window.Telegram.WebApp.CloudStorage.getItem(
+          'send_private_key',
+          async (error, privateKey) => {
+            const decryptedMsg = await decryptE2EPacket(
+              privateKey!,
+              props.sender_public_key,
+              el.innerText,
+            )
+            el.innerText = decryptedMsg!
+          },
+        )
       }
     } catch (error) {
       alert(error)
@@ -67,9 +73,13 @@ function Submit() {
 
   axios.get(`/get-key/${props.id}`).then(async ({ data: key }) => {
     window.Telegram.WebApp.CloudStorage.getItem(
-      props.owner ? "receive_private_key" : "send_private_key",
+      props.owner ? 'receive_private_key' : 'send_private_key',
       async (error, privateKey) => {
-        const encryptedMsg = await createE2EPacket(key, privateKey!, replayMessage.value)
+        const encryptedMsg = await createE2EPacket(
+          key,
+          privateKey!,
+          replayMessage.value,
+        )
         axios
           .post('/replay-message', {
             message_id: props.id,
@@ -77,23 +87,29 @@ function Submit() {
           })
           .then(() => {
             replaying.value = false
-
+            replayMessage.value = ''
             replaySent.value = true
 
             setTimeout(() => (replaySent.value = false), 1500)
           })
-      })
-
-
+      },
+    )
   })
 }
 </script>
 <template>
-  <div class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
-    :class="mark && ['border-2 border-[#119af5]']">
+  <div
+    class="flex flex-col bg-[#ffffff] px-4 pt-3 pb-4 rounded-lg shadow-sm"
+    :class="mark && ['border-2 border-[#119af5]']"
+  >
     <Time :value="time" class="text-gray-400 text-end text-sm"></Time>
-    <p v-if="quote?.content" class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2 truncate w-full"
-      style="background-color: rgba(137, 207, 240, 0.3)" quote="true" v-decrypt>
+    <p
+      v-if="quote?.content"
+      class="border-r-4 rounded-md border-r-blue-500 pr-2 py-2 mt-2 truncate w-full"
+      style="background-color: rgba(137, 207, 240, 0.3)"
+      quote="true"
+      v-decrypt
+    >
       {{ quote.content }}
     </p>
 
@@ -108,9 +124,16 @@ function Submit() {
       </div>
 
       <div v-else class="flex flex-col mt-4">
-        <Textarea v-model="replayMessage" placeholder="پاسخ شما..." v-focus></Textarea>
+        <Textarea
+          v-model="replayMessage"
+          placeholder="پاسخ شما..."
+          v-focus
+        ></Textarea>
         <Button :block="true" class="mt-4" @click="Submit">ارسال</Button>
-        <p class="text-center pt-4 text-[#119af5] font-bold cursor-pointer" @click="replaying = false">
+        <p
+          class="text-center pt-4 text-[#119af5] font-bold cursor-pointer"
+          @click="replaying = false"
+        >
           بیخیال
         </p>
       </div>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
@@ -27,50 +27,68 @@ const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
 >('set-username')
 
-async function generateKeyPairs() {
-  loading.value = true
+onMounted(() => {
+  window.Telegram.WebApp.expand()
+}),
+  async function generateKeyPairs() {
+    loading.value = true
 
-  let receivePublicKey: string, sendPublicKey: string
+    let receivePublicKey: string, sendPublicKey: string
 
-  await generateKeyPair().then(({ privateKey, publicKey }) => {
-    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", privateKey)
-    window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", publicKey)
-    receivePublicKey = publicKey
-  })
+    await generateKeyPair().then(({ privateKey, publicKey }) => {
+      window.Telegram.WebApp.CloudStorage.setItem(
+        'receive_private_key',
+        privateKey,
+      )
+      window.Telegram.WebApp.CloudStorage.setItem(
+        'receive_public_key',
+        publicKey,
+      )
+      receivePublicKey = publicKey
+    })
 
-  await generateKeyPair().then(({ privateKey, publicKey }) => {
-    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", privateKey)
-    window.Telegram.WebApp.CloudStorage.setItem("send_public_key", publicKey)
-    sendPublicKey = publicKey
-  })
+    await generateKeyPair().then(({ privateKey, publicKey }) => {
+      window.Telegram.WebApp.CloudStorage.setItem(
+        'send_private_key',
+        privateKey,
+      )
+      window.Telegram.WebApp.CloudStorage.setItem('send_public_key', publicKey)
+      sendPublicKey = publicKey
+    })
 
-  setTimeout(() => {
-    axios
-      .post('/set-key', {
-        receive_public_key: receivePublicKey,
-        send_public_key: sendPublicKey,
-      })
-      .then(({ data }) => {
-        state.value = 'key-generation'
-        userStore.user.receivePublicKey = data.receive_public_key
-        userStore.user.sendPublicKey = data.send_public_key
-      })
-      .finally(() => {
-        loading.value = false
-      })
-  }, 1500)
-}
+    setTimeout(() => {
+      axios
+        .post('/set-key', {
+          receive_public_key: receivePublicKey,
+          send_public_key: sendPublicKey,
+        })
+        .then(({ data }) => {
+          state.value = 'key-generation'
+          userStore.user.receivePublicKey = data.receive_public_key
+          userStore.user.sendPublicKey = data.send_public_key
+        })
+        .finally(() => {
+          loading.value = false
+        })
+    }, 1500)
+  }
 
 function exportHandler() {
-  window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
-    window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, privateKey2) => {
-      navigator.clipboard.writeText(`${privateKey}\n\n\n${privateKey2}`)
-      delay.value = true
-      setTimeout(() => {
-        delay.value = false
-      }, 2000);
-    })
-  })
+  window.Telegram.WebApp.CloudStorage.getItem(
+    'receive_private_key',
+    async (error, privateKey) => {
+      window.Telegram.WebApp.CloudStorage.getItem(
+        'send_public_key',
+        async (error, privateKey2) => {
+          navigator.clipboard.writeText(`${privateKey}\n\n\n${privateKey2}`)
+          delay.value = true
+          setTimeout(() => {
+            delay.value = false
+          }, 2000)
+        },
+      )
+    },
+  )
   state.value = 'key-generation'
 }
 
@@ -88,11 +106,23 @@ function importKeys(event: Event) {
       sendPublicKey,
     } = extractKeys(rawData)
 
-    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", receivePrivateKey)
-    window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", receivePublicKey)
+    window.Telegram.WebApp.CloudStorage.setItem(
+      'receive_private_key',
+      receivePrivateKey,
+    )
+    window.Telegram.WebApp.CloudStorage.setItem(
+      'receive_public_key',
+      receivePublicKey,
+    )
 
-    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", sendPrivateKey)
-    window.Telegram.WebApp.CloudStorage.setItem("send_public_key", sendPublicKey)
+    window.Telegram.WebApp.CloudStorage.setItem(
+      'send_private_key',
+      sendPrivateKey,
+    )
+    window.Telegram.WebApp.CloudStorage.setItem(
+      'send_public_key',
+      sendPublicKey,
+    )
 
     axios
       .post('/set-key', {
@@ -121,7 +151,11 @@ function usernameSubmit() {
 }
 
 function done() {
-  if (route.query.next) router.push({ name: "profile", params: { username: route.query.next as string } })
+  if (route.query.next)
+    router.push({
+      name: 'profile',
+      params: { username: route.query.next as string },
+    })
   else router.push({ name: 'inbox' })
 }
 </script>
@@ -132,35 +166,50 @@ function done() {
       <LoadingIcon color="#119af5" size="26px" />
     </div>
 
-
     <template v-else>
       <template v-if="state === 'set-username'">
         <div class="relative">
           <label class="font-semibold">
             یه نام کاربر برای خودت انتخاب کن:
           </label>
-          <Input v-model="username" class="pl-7 my-4" placeholder="Username..." dir="ltr" />
+          <Input
+            v-model="username"
+            class="pl-7 my-4"
+            placeholder="Username..."
+            dir="ltr"
+          />
           <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 my-2" v-text="usernameErr" />
         <Button @click="usernameSubmit()"> بعدی </Button>
-        <p class="mt-5">اگه قصد داری آیدیت ناشناس باشه یه مقدار رندوم رو وارد کن.</p>
+        <p class="mt-5">
+          اگه قصد داری آیدیت ناشناس باشه یه مقدار رندوم رو وارد کن.
+        </p>
       </template>
 
       <template v-if="state === 'key-question'">
         <p class="pb-5 pt-3 text-center">
-          توی این مرحله، ما برات یه جفت کلید RSA برای رمزنگاری پیام‌های ارسالی و دریافتی می‌سازیم. در آینده امکان اینکه
-          خودت کلیدت رو بسازی و وارد کنی هم اضافه میشه. اینم یادت باشه که کلید private تو هیچوقت سمت هیچ سروری ارسال
-          نمیشه و تمام فرایند رمزنگاری سمت تلگرام انجام میشه.
+          توی این مرحله، ما برات یه جفت کلید RSA برای رمزنگاری پیام‌های ارسالی و
+          دریافتی می‌سازیم. در آینده امکان اینکه خودت کلیدت رو بسازی و وارد کنی
+          هم اضافه میشه. اینم یادت باشه که کلید private تو هیچوقت سمت هیچ سروری
+          ارسال نمیشه و تمام فرایند رمزنگاری سمت تلگرام انجام میشه.
         </p>
         <div class="grid grid-cols-1 gap-y-2">
-          <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeyPairs">
+          <button
+            class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
+            @click="generateKeyPairs"
+          >
             متوجه شدم
           </button>
           <!-- <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
             آپلود می‌کنم
           </button> -->
-          <input ref="FileInput" type="file" class="hidden" @change="importKeys" />
+          <input
+            ref="FileInput"
+            type="file"
+            class="hidden"
+            @change="importKeys"
+          />
         </div>
       </template>
 
@@ -176,7 +225,10 @@ function done() {
           کلیدهای رمزنگاری تو با موفقیت ساخته شد.
         </p>
         <Button @click="done()"> ادامه </Button>
-        <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
+        <p
+          class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer"
+          @click="exportHandler"
+        >
           {{ !delay ? 'کپی کردن' : 'کپی شد' }}
         </p>
       </template>
