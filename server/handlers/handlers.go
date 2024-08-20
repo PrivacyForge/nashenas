@@ -180,6 +180,7 @@ func SendMessage(c *fiber.Ctx) error {
 		OwnerID: body.Id,
 		Time:    time.Now()})
 
+	// push notification from telegram bot to user account
 	err := redis.Client.Publish("message", fmt.Sprint(targetUser.Userid))
 	if err != nil {
 		log.Fatalf("Failed to publish message: %v", err)
@@ -242,30 +243,51 @@ func GetMessages(c *fiber.Ctx) error {
 	messages := []response.GetMessages{}
 
 	for i := 0; i < len(result); i++ {
-		var owner bool = result[i].OwnerID == uint64(userid)
+		var owner bool = result[i].OwnerID == uint64(user.ID)
 
+		var sourceUser database.User
+		database.DB.Where("id = ?", result[i].FromID).Find(&sourceUser)
 		if result[i].ParentID != 0 {
 			var res database.Message
 			database.DB.Where("id = ?", result[i].ParentID).Find(&res)
-			messages = append(messages, response.GetMessages{
-				ID:        result[i].ID,
-				Content:   result[i].Content,
-				Time:      result[i].Time,
-				Owner:     owner,
-				CanReplay: result[i].FromID != 0,
-				Quote: &response.Quote{
-					ID:      res.ID,
-					Content: res.Content,
-				},
-			})
+			var quotedUser database.User
+			database.DB.Where("id = ?", res.ToID).Find(&quotedUser)
+			if owner {
+				messages = append(messages, response.GetMessages{
+					ID:              result[i].ID,
+					Content:         result[i].Content,
+					Time:            result[i].Time,
+					Owner:           owner, // true
+					CanReplay:       true,
+					SenderPublicKey: sourceUser.SendPublicKey,
+					Quote: &response.Quote{
+						ID:      res.ID,
+						Content: res.Content,
+					},
+				})
+			} else {
+				messages = append(messages, response.GetMessages{
+					ID:              result[i].ID,
+					Content:         result[i].Content,
+					Time:            result[i].Time,
+					Owner:           owner, // false
+					CanReplay:       true,
+					SenderPublicKey: sourceUser.ReceivePublicKey,
+					Quote: &response.Quote{
+						ID:      res.ID,
+						Content: res.Content,
+					},
+				})
+			}
 		} else {
 			messages = append(messages, response.GetMessages{
-				ID:        result[i].ID,
-				Time:      result[i].Time,
-				Content:   result[i].Content,
-				CanReplay: result[i].FromID != 0,
-				Owner:     owner,
-				Quote:     nil,
+				ID:              result[i].ID,
+				Time:            result[i].Time,
+				Owner:           owner,
+				Quote:           nil,
+				Content:         result[i].Content,
+				CanReplay:       true,
+				SenderPublicKey: sourceUser.SendPublicKey,
 			})
 		}
 

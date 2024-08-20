@@ -32,8 +32,9 @@ axios
 <template>
   <div class="grid grid-cols-1 gap-y-3 my-4">
     <template v-if="messages?.length">
-      <Message v-for="(m, i) in messages" :key="i" :id="m.id" :time="m.time" :owner="m.owner" :quote="m.quote"
-        :text="m.content" :canReplay="m.can_replay" :mark="false" />
+      <Message v-for="(message, i) in messages" :key="i" :id="message.id" :time="message.time" :owner="message.owner"
+        :quote="message.quote" :text="message.content" :canReplay="message.can_replay" :mark="false"
+        :sender_public_key="message.sender_public_key" />
     </template>
     <p class="text-center text-gray-400" v-else>
       فعلا هیچ پیامی دریافت نکردی :)

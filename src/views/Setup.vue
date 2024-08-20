@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
 import { extractKeys, exportKeys } from '@/utils'
-import { generateKeyPair } from '@/cryptography/RSA'
+import { generateKeyPair } from '@/cryptography/DiffieHellman'
 
 import Card from '@/components/UI/Card.vue'
 import Input from '@/components/UI/Input.vue'
@@ -27,7 +27,7 @@ const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
 >('set-username')
 
-async function generateKeys() {
+async function generateKeyPairs() {
   loading.value = true
 
   let receivePublicKey: string, sendPublicKey: string
@@ -154,7 +154,7 @@ function done() {
           نمیشه و تمام فرایند رمزنگاری سمت تلگرام انجام میشه.
         </p>
         <div class="grid grid-cols-1 gap-y-2">
-          <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeys">
+          <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeyPairs">
             متوجه شدم
           </button>
           <!-- <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">

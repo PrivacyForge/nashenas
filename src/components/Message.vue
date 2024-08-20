@@ -2,12 +2,11 @@
 import { ref } from 'vue'
 
 import axios from '@/plugins/axios'
-import { decrypt, encrypt } from '@/cryptography'
+import { decryptE2EPacket, createE2EPacket } from '@/cryptography/DiffieHellman'
 
 import Time from '@/components/UI/Time.vue'
 import Button from '@/components/UI/Button.vue'
 import Textarea from '@/components/UI/Textarea.vue'
-import ReplyIcon from '@/components/icons/Reply.vue'
 
 const props = defineProps<{
   id: number
@@ -16,6 +15,7 @@ const props = defineProps<{
   owner: boolean
   mark: boolean
   canReplay: boolean
+  sender_public_key: string
   quote?: {
     id: number
     content: string
@@ -29,14 +29,26 @@ const replaySent = ref(false)
 const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
     try {
-      window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
-        const decryptedMsg = await decrypt(
-          el.innerText,
-          privateKey!,
-          false
-        )
-        el.innerText = decryptedMsg
-      })
+      const isQuote = !!el.getAttribute('quote')
+      if (props.owner) {
+        window.Telegram.WebApp.CloudStorage.getItem("receive_private_key", async (error, privateKey) => {
+          const decryptedMsg = await decryptE2EPacket(
+            privateKey!,
+            props.sender_public_key,
+            el.innerText,
+          )
+          el.innerText = decryptedMsg!
+        })
+      } else {
+        window.Telegram.WebApp.CloudStorage.getItem("send_private_key", async (error, privateKey) => {
+          const decryptedMsg = await decryptE2EPacket(
+            privateKey!,
+            props.sender_public_key,
+            el.innerText,
+          )
+          el.innerText = decryptedMsg!
+        })
+      }
     } catch (error) {
       alert(error)
       el.innerText = 'خطا در رمزگشایی!'
@@ -54,29 +66,25 @@ function Submit() {
   if (!replayMessage.value) return
 
   axios.get(`/get-key/${props.id}`).then(async ({ data: key }) => {
-    let encryptedMsg
-    if (props.owner) {
-      window.Telegram.WebApp.CloudStorage.getItem("receive_public_key", async (error, publicKey) => {
-        encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
-      })
-    } else {
-      window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, publicKey) => {
-        encryptedMsg = await encrypt(replayMessage.value, key, publicKey!)
-      })
-    }
+    window.Telegram.WebApp.CloudStorage.getItem(
+      props.owner ? "receive_private_key" : "send_private_key",
+      async (error, privateKey) => {
+        const encryptedMsg = await createE2EPacket(key, privateKey!, replayMessage.value)
+        axios
+          .post('/replay-message', {
+            message_id: props.id,
+            message: encryptedMsg,
+          })
+          .then(() => {
+            replaying.value = false
 
-    axios
-      .post('/replay-message', {
-        message_id: props.id,
-        message: encryptedMsg,
-      })
-      .then(() => {
-        replaying.value = false
+            replaySent.value = true
 
-        replaySent.value = true
-
-        setTimeout(() => (replaySent.value = false), 1500)
+            setTimeout(() => (replaySent.value = false), 1500)
+          })
       })
+
+
   })
 }
 </script>
@@ -93,10 +101,10 @@ function Submit() {
 
     <template v-if="canReplay">
       <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-        <!-- <div class="flex items-center cursor-pointer" @click="replaying = true">
+        <div class="flex items-center cursor-pointer" @click="replaying = true">
           <span class="ml-1 text-sm">پاسخ</span>
           <ReplyIcon size="20" color="#9CA38F" />
-        </div> -->
+        </div>
       </div>
 
       <div v-else class="flex flex-col mt-4">

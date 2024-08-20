@@ -3,8 +3,8 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
-import { encrypt } from '@/cryptography'
 import { useUserStore } from '@/stores/user'
+import { createE2EPacket } from '@/cryptography/DiffieHellman'
 
 import Card from '@/components/UI/Card.vue'
 import Button from '@/components/UI/Button.vue'
@@ -40,33 +40,31 @@ const user = reactive<{
 async function submit() {
   if (message.value === '') return
 
-  let myPublicKey
-  if (userStore.isAuth) {
-    myPublicKey = localStorage.getItem('send_public_key')
-  }
+  window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, privateKey) => {
+    const encryptedMsg = await createE2EPacket(
+      user.publicKey!,
+      privateKey!,
+      message.value,
+    )
+    submitLoading.value = true
 
-  const encryptedMsg = await encrypt(
-    message.value,
-    user.publicKey!,
-    // myPublicKey!,
-  )
+    setTimeout(() => {
+      axios
+        .post(`/send-message`, {
+          message: encryptedMsg,
+          id: user.id,
+        })
+        .then(() => {
+          message.value = ''
+          sent.value = true
+        })
+        .finally(() => {
+          submitLoading.value = false
+        })
+    }, 2000)
+  })
 
-  submitLoading.value = true
 
-  setTimeout(() => {
-    axios
-      .post(`/send-message`, {
-        message: encryptedMsg,
-        id: user.id,
-      })
-      .then(() => {
-        message.value = ''
-        sent.value = true
-      })
-      .finally(() => {
-        submitLoading.value = false
-      })
-  }, 2000)
 }
 
 onMounted(() => {
