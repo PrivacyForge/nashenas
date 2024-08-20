@@ -40,7 +40,7 @@ const user = reactive<{
 async function submit() {
   if (message.value === '') return
 
-  window.Telegram.WebApp.CloudStorage.getItem("send_public_key", async (error, privateKey) => {
+  window.Telegram.WebApp.CloudStorage.getItem("send_private_key", async (error, privateKey) => {
     const encryptedMsg = await createE2EPacket(
       user.publicKey!,
       privateKey!,
