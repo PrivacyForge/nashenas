@@ -15,6 +15,11 @@ export const handleCommands = () => {
     ctx.reply('برای اجرا شدن از دستور /start استفاده کنید')
   })
   bot.start(async (ctx) => {
+    ctx.setChatMenuButton({
+      text: 'باز کردن',
+      web_app: { url: WEB_APP_URL },
+      type: 'web_app',
+    })
     const query = ctx.update.message.text.split(' ')
     if (query.length === 2) {
       const username = query[1]
