@@ -228,6 +228,11 @@ func ReplayMessage(c *fiber.Ctx) error {
 		ParentID: result.ID,
 		Time:     time.Now()})
 
+	err := redis.Client.Publish("message", fmt.Sprint(result.FromID))
+	if err != nil {
+		log.Fatalf("Failed to publish message: %v", err)
+	}
+
 	return c.SendString("Ok")
 }
 
