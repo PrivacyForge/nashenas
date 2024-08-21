@@ -43,8 +43,7 @@ async function generateKeys() {
       receive_public_key: receivePublicKey!,
     })
     .then(({ data }) => {
-      userStore.user.sendPublicKey = data.send_public_key
-      userStore.user.receivePublicKey = data.receive_public_key
+      userStore.user.publicKey = data.public_key
 
       window.Telegram.WebApp.CloudStorage.setItem("send_public_key", data.send_public_key)
       window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", data.receive_public_key)
@@ -68,8 +67,7 @@ function importHandler(event: Event) {
         receive_public_key: keys.receivePublicKey,
       })
       .then(({ data }) => {
-        userStore.user.sendPublicKey = data.send_public_key
-        userStore.user.receivePublicKey = data.receive_public_key
+        userStore.user.publicKey = data.public_key
 
         window.Telegram.WebApp.CloudStorage.setItem("send_public_key", data.send_public_key)
         window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", data.receive_public_key)
