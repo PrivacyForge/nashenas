@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 
 import Settings from '@/components/Settings.vue'
@@ -10,17 +10,26 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-// const encoder = new TextEncoder();
-// const data = encoder.encode(userStore.user.publicKey);
+const delay = ref(false)
 
-// const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-// const hash = bufferToHex(hashBuffer)
+async function copy() {
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(userStore.user.publicKey);
 
-alert("layout")
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hash = bufferToHex(hashBuffer)
+    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${userStore.user.username}-${hash}`)
+  } catch (error) {
+    alert(error)
+  }
 
-const myLink = computed(() => {
-  return `https://t.me/Nashenase2ebot?start=${userStore.user.username}-hash`
-})
+  delay.value = true
+  setTimeout(() => {
+    delay.value = false
+  }, 2000)
+}
+
 onMounted(() => {
   window.Telegram.WebApp.expand()
   window.Telegram.WebApp.disableVerticalSwipes()
@@ -33,7 +42,8 @@ onMounted(() => {
       <div class="cursor-pointer">
         <Settings />
       </div>
-      <CopyText text="کپی لینک" :copy="myLink" class="text-[#119af5] test- font-semibold text-end" />
+      <button v-if="!delay" class="text-[#119af5] font-semibold text-end" @click="copy">کپی لینک</button>
+      <div class="text-center" v-else>کپی شد!</div>
     </nav>
     <hr class="my-1" />
     <RouterView />
