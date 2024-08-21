@@ -192,7 +192,7 @@ func SendMessage(c *fiber.Ctx) error {
 		log.Fatalf("Failed to publish message: %v", err)
 	}
 
-	return c.JSON(response.SendMessage{Message: "The message was sent"})
+	return c.JSON(response.SendMessage{Message: "The message was sent", SessionID: session.ID})
 }
 
 func GetPublicKey(c *fiber.Ctx) error {

@@ -59,9 +59,11 @@ async function submit() {
         session_key: encryptedKey,
         id: user.id!
       })
-      .then(() => {
+      .then(({ data }) => {
         message.value = ''
         sent.value = true
+
+        window.Telegram.WebApp.CloudStorage.setItem(data.session_id, sessionKey)
       })
       .finally(() => {
         submitLoading.value = false
