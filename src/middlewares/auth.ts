@@ -3,7 +3,7 @@ import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
 
 const middleware: NavigationGuard = async (to, from, next) => {
-  alert("middle")
+  alert('middle')
   const userStore = useUserStore()
   if (userStore.isAuth) return next()
 
@@ -17,9 +17,7 @@ const middleware: NavigationGuard = async (to, from, next) => {
 
       userStore.isAuth = true
 
-      data.receive_public_key && data.send_public_key
-        ? next()
-        : next({ name: 'setup' })
+      data.public_key ? next() : next({ name: 'setup' })
     })
     .catch((error) => {
       alert(error)
