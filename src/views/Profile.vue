@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
-import { createE2EPacket } from '@/cryptography/DiffieHellman'
+import { generateRandomKey as generateRandomAESKey } from '@/cryptography/AES'
+import * as RSA from '@/cryptography/RSA'
+import * as AES from '@/cryptography/AES'
 
 import Card from '@/components/UI/Card.vue'
 import Button from '@/components/UI/Button.vue'
@@ -12,11 +14,22 @@ import Textarea from '@/components/UI/Textarea.vue'
 import GithubIcon from '@/components/icons/Github.vue'
 import LoadingIcon from '@/components/icons/Loading.vue'
 import TelegramIcon from '@/components/icons/Telegram.vue'
+import { bufferToHex } from '@/utils'
 
 const userStore = useUserStore()
 
 const route = useRoute()
 const router = useRouter()
+
+const user = reactive<{
+  id: number | null
+  publicKey: string | null
+  username: string | null
+}>({
+  id: null,
+  username: null,
+  publicKey: null,
+})
 
 const message = ref('')
 const username = route.params.username
@@ -29,74 +42,77 @@ const submitLoading = ref(false)
 
 const sent = ref(false)
 
-const user = reactive<{
-  id: number | null
-  publicKey: string | null
-}>({
-  id: null,
-  publicKey: null,
-})
-
 async function submit() {
   if (message.value === '') return
 
-  window.Telegram.WebApp.CloudStorage.getItem("send_private_key", async (error, privateKey) => {
-    const encryptedMsg = await createE2EPacket(
-      user.publicKey!,
-      privateKey!,
-      message.value,
-    )
-    submitLoading.value = true
+  const sessionKey = generateRandomAESKey()
 
-    setTimeout(() => {
-      axios
-        .post(`/send-message`, {
-          message: encryptedMsg,
-          id: user.id,
-        })
-        .then(() => {
-          message.value = ''
-          sent.value = true
-        })
-        .finally(() => {
-          submitLoading.value = false
-        })
-    }, 2000)
-  })
+  const encryptedMsg = await AES.encrypt(message.value, sessionKey)
+  const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
 
+  submitLoading.value = true
 
-}
-
-onMounted(() => {
-  setTimeout(async () => {
-    await axios
-      .get(`/profile/${username}`)
-      .then(async (response) => {
-        user.publicKey = response.data.public_key
-        user.id = response.data.id
-
-        await axios
-          .get('/me')
-          .then(({ data }) => {
-            userStore.user.id = data.id
-            userStore.user.userid = data.userid
-            userStore.user.username = data.username
-            userStore.user.receivePublicKey = data.receive_public_key
-            userStore.user.sendPublicKey = data.send_public_key
-            userStore.isAuth = true
-
-            if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
-          })
-          .catch(() => { })
+  setTimeout(() => {
+    axios
+      .post(`/send-message`, {
+        message: encryptedMsg,
+        session_key: encryptedKey,
+        id: user.id!
       })
-      .catch(() => {
-        notFoundUser.value = true
-        errorMessage.value = 'Not found user.'
+      .then(() => {
+        message.value = ''
+        sent.value = true
       })
       .finally(() => {
-        loading.value = false
+        submitLoading.value = false
       })
-  }, 1000)
+  }, 2000)
+}
+
+onMounted(async () => {
+  const words = (route.params.usernameWithHash as string).split('-')
+
+  if (words.length != 2) {
+    router.push({ name: "error" })
+  }
+
+  const username = words[0]
+  const hash = words[1]
+
+  loading.value = true
+  axios
+    .get('/me')
+    .then(({ data }) => {
+      userStore.user.id = data.id
+      userStore.user.userid = data.userid
+      userStore.user.username = data.username
+      userStore.user.publicKey = data.public_key
+      userStore.isAuth = true
+
+      if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
+
+      axios
+        .get(`/profile/${username}`)
+        .then(async (response) => {
+          user.id = response.data.id
+          user.publicKey = response.data.public_key
+          user.username = response.data.username
+
+          const encoder = new TextEncoder();
+          const data = encoder.encode(user.publicKey!);
+
+          const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+          const publicKeyHash = bufferToHex(hashBuffer)
+
+          if (publicKeyHash !== hash) {
+            router.push({ name: "error" })
+          }
+        })
+        .finally(() => {
+          loading.value = false
+        })
+    })
 })
 </script>
 
@@ -113,7 +129,7 @@ onMounted(() => {
           <p class="text-center text-[#119af5] font-semibold" v-text="errorMessage" />
         </template>
         <template v-else>
-          <p>برای کاربر {{ $route.params.username }} یه پیام ناشناس بنویس...</p>
+          <p>برای کاربر مقصدت یه پیام ناشناس بنویس...</p>
           <Textarea v-model="message" placeholder="متن..."></Textarea>
           <Button :disabled="message.length < 3" :loading="submitLoading" @click="submit">ارسال پیام</Button>
         </template>

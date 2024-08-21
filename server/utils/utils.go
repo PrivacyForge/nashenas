@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -72,4 +74,10 @@ func Parse(initData string) (InitData, error) {
 		return InitData{}, errors.New("format error")
 	}
 	return d, nil
+}
+
+func GenerateSHA256(input string) string {
+	hash := sha256.New()
+	hash.Write([]byte(input))
+	return hex.EncodeToString(hash.Sum(nil))
 }

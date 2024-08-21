@@ -4,8 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
-import { extractKeys, exportKeys } from '@/utils'
-import { generateKeyPair } from '@/cryptography/DiffieHellman'
+import { generateKeyPair } from '@/cryptography/RSA'
 
 import Card from '@/components/UI/Card.vue'
 import Input from '@/components/UI/Input.vue'
@@ -21,121 +20,44 @@ const usernameErr = ref('')
 
 const loading = ref(false)
 const delay = ref(false)
-const FileInput = ref<any>()
 
 const state = ref<
   'set-username' | 'key-question' | 'key-generation' | 'key-upload'
 >('set-username')
 
-onMounted(() => {
-  window.Telegram.WebApp.expand()
-}),
-  async function generateKeyPairs() {
-    loading.value = true
+async function generateKeyPairs() {
+  loading.value = true
 
-    let receivePublicKey: string, sendPublicKey: string
-
-    await generateKeyPair().then(({ privateKey, publicKey }) => {
-      window.Telegram.WebApp.CloudStorage.setItem(
-        'receive_private_key',
-        privateKey,
-      )
-      window.Telegram.WebApp.CloudStorage.setItem(
-        'receive_public_key',
-        publicKey,
-      )
-      receivePublicKey = publicKey
-    })
-
-    await generateKeyPair().then(({ privateKey, publicKey }) => {
-      window.Telegram.WebApp.CloudStorage.setItem(
-        'send_private_key',
-        privateKey,
-      )
-      window.Telegram.WebApp.CloudStorage.setItem('send_public_key', publicKey)
-      sendPublicKey = publicKey
-    })
-
+  generateKeyPair().then(({ privateKey, publicKey }) => {
+    window.Telegram.WebApp.CloudStorage.setItem("private_key", privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("public_key", publicKey)
     setTimeout(() => {
       axios
         .post('/set-key', {
-          receive_public_key: receivePublicKey,
-          send_public_key: sendPublicKey,
+          public_key: publicKey,
         })
         .then(({ data }) => {
           state.value = 'key-generation'
-          userStore.user.receivePublicKey = data.receive_public_key
-          userStore.user.sendPublicKey = data.send_public_key
+          userStore.user.publicKey = data.public_key
         })
         .finally(() => {
           loading.value = false
         })
     }, 1500)
-  }
-
-function exportHandler() {
-  window.Telegram.WebApp.CloudStorage.getItem(
-    'receive_private_key',
-    async (error, privateKey) => {
-      window.Telegram.WebApp.CloudStorage.getItem(
-        'send_public_key',
-        async (error, privateKey2) => {
-          navigator.clipboard.writeText(`${privateKey}\n\n\n${privateKey2}`)
-          delay.value = true
-          setTimeout(() => {
-            delay.value = false
-          }, 2000)
-        },
-      )
-    },
-  )
-  state.value = 'key-generation'
+  })
 }
 
-function importKeys(event: Event) {
-  // @ts-ignore
-  const file = event.target!.files[0]
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const rawData = e.target!.result as string
-
-    const {
-      receivePrivateKey,
-      receivePublicKey,
-      sendPrivateKey,
-      sendPublicKey,
-    } = extractKeys(rawData)
-
-    window.Telegram.WebApp.CloudStorage.setItem(
-      'receive_private_key',
-      receivePrivateKey,
-    )
-    window.Telegram.WebApp.CloudStorage.setItem(
-      'receive_public_key',
-      receivePublicKey,
-    )
-
-    window.Telegram.WebApp.CloudStorage.setItem(
-      'send_private_key',
-      sendPrivateKey,
-    )
-    window.Telegram.WebApp.CloudStorage.setItem(
-      'send_public_key',
-      sendPublicKey,
-    )
-
-    axios
-      .post('/set-key', {
-        receive_public_key: receivePublicKey,
-        send_public_key: sendPublicKey,
-      })
-      .then(({ data }) => {
-        state.value = 'key-upload'
-        userStore.user.receivePublicKey = data.receive_public_key
-        userStore.user.sendPublicKey = data.send_public_key
-      })
-  }
-  reader.readAsText(file)
+function exportHandler() {
+  window.Telegram.WebApp.CloudStorage.getItem("private_key", async (error, privateKey) => {
+    window.Telegram.WebApp.CloudStorage.getItem("public_key", async (error, publicKey) => {
+      navigator.clipboard.writeText(`${privateKey}\n\n\n${publicKey}`)
+      delay.value = true
+      setTimeout(() => {
+        delay.value = false
+      }, 2000);
+    })
+  })
+  state.value = 'key-generation'
 }
 
 function usernameSubmit() {
@@ -158,6 +80,10 @@ function done() {
     })
   else router.push({ name: 'inbox' })
 }
+
+onMounted(() => {
+  window.Telegram.WebApp.expand()
+})
 </script>
 <template>
   <Card class="grid grid-cols-1 m-4">
@@ -172,12 +98,7 @@ function done() {
           <label class="font-semibold">
             یه نام کاربر برای خودت انتخاب کن:
           </label>
-          <Input
-            v-model="username"
-            class="pl-7 my-4"
-            placeholder="Username..."
-            dir="ltr"
-          />
+          <Input v-model="username" class="pl-7 my-4" placeholder="Username..." dir="ltr" />
           <span class="absolute left-2 top-[54px] font-bold">@</span>
         </div>
         <p v-if="usernameErr" class="text-red-500 my-2" v-text="usernameErr" />
@@ -195,21 +116,9 @@ function done() {
           ارسال نمیشه و تمام فرایند رمزنگاری سمت تلگرام انجام میشه.
         </p>
         <div class="grid grid-cols-1 gap-y-2">
-          <button
-            class="bg-[#119af5] text-white py-2 rounded-md font-semibold"
-            @click="generateKeyPairs"
-          >
+          <button class="bg-[#119af5] text-white py-2 rounded-md font-semibold" @click="generateKeyPairs">
             متوجه شدم
           </button>
-          <!-- <button class="text-[#119af5] py-2 rounded-md font-semibold" @click="FileInput.click()">
-            آپلود می‌کنم
-          </button> -->
-          <input
-            ref="FileInput"
-            type="file"
-            class="hidden"
-            @change="importKeys"
-          />
         </div>
       </template>
 
@@ -225,10 +134,7 @@ function done() {
           کلیدهای رمزنگاری تو با موفقیت ساخته شد.
         </p>
         <Button @click="done()"> ادامه </Button>
-        <p
-          class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer"
-          @click="exportHandler"
-        >
+        <p class="text-center mt-4 text-[#119af5] font-semibold cursor-pointer" @click="exportHandler">
           {{ !delay ? 'کپی کردن' : 'کپی شد' }}
         </p>
       </template>

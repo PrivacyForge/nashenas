@@ -29,9 +29,14 @@ const router = createRouter({
       beforeEnter: AuthMiddleware,
     },
     {
-      path: "/@:username([a-zA-Z]{1}[a-zA-Z0-9]{4,})",
+      path: "/@:usernameWithHash",
       name: "profile",
       component: () => import("@/views/Profile.vue"),
+    },
+    {
+      path: "/test",
+      name: "test",
+      component: () => import("@/views/Test.vue"),
     },
   ],
 });

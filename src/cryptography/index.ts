@@ -3,21 +3,14 @@ import * as RSA from './RSA'
 
 async function encrypt(
   message: string,
-  destPubKey: string,
-  srcPubKey?: string
+  sessionKey: string,
+  publicKey: string,
 ) {
-  const key = await AES.generateRandomKey()
+  const encryptedKey = await RSA.encrypt(sessionKey, publicKey)
 
-  const destEncryptedKey = await RSA.encrypt(key, destPubKey)
+  const encryptedMsg = await AES.encrypt(message, sessionKey)
 
-  const encryptedMsg = await AES.encrypt(message, key)
-
-  if (srcPubKey) {
-    const srcEncryptedKey = await RSA.encrypt(key, srcPubKey)
-    return `${destEncryptedKey}-${encryptedMsg}-${srcEncryptedKey}`
-  }
-
-  return `${destEncryptedKey}-${encryptedMsg}`
+  return `${encryptedKey}-${encryptedMsg}`
 }
 
 async function decrypt(message: string, privateKey: string, reverse: boolean) {

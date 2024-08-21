@@ -21,9 +21,8 @@ type SetUsername struct {
 }
 
 type SetPublicKey struct {
-	ReceivePublicKey string `json:"receive_public_key"`
-	SendPublicKey    string `json:"send_public_key"`
-	Message          string `json:"message"`
+	PublicKey string `json:"public_key"`
+	Message   string `json:"message"`
 }
 
 type GetProfile struct {
@@ -37,10 +36,10 @@ type SendMessage struct {
 }
 
 type GetMe struct {
-	Username         string `json:"username"`
-	Userid           uint64 `json:"userid"`
-	ReceivePublicKey string `json:"receive_public_key"`
-	SendPublicKey    string `json:"send_public_key"`
+	Username      string `json:"username"`
+	Userid        uint64 `json:"userid"`
+	PublicKey     string `json:"public_key"`
+	PublicKeyHash string `json:"public_key_hash"`
 }
 
 type Quote struct {
@@ -49,11 +48,12 @@ type Quote struct {
 }
 
 type GetMessages struct {
-	ID              uint64    `json:"id"`
-	Content         string    `json:"content"`
-	Time            time.Time `json:"time"`
-	Owner           bool      `json:"owner"`
-	Quote           *Quote    `json:"quote,omitempty"`
-	CanReplay       bool      `json:"can_replay"`
-	SenderPublicKey string    `json:"sender_public_key"`
+	ID         uint64    `json:"id"`
+	SessionID  uint64    `json:"session_id"`
+	SessionKey string    `json:"session_key"`
+	Content    string    `json:"content"`
+	Time       time.Time `json:"time"`
+	Owner      bool      `json:"owner"`
+	Quote      *Quote    `json:"quote,omitempty"`
+	CanReplay  bool      `json:"can_replay"`
 }

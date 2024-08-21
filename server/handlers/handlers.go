@@ -12,6 +12,7 @@ import (
 	"github.com/PrivacyForge/nashenas/redis"
 	"github.com/PrivacyForge/nashenas/request"
 	"github.com/PrivacyForge/nashenas/response"
+	"github.com/PrivacyForge/nashenas/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -27,25 +28,26 @@ func GetMe(c *fiber.Ctx) error {
 
 	if result.Userid == 0 {
 		var newUser = database.User{
-			Userid:           uint64(userid),
-			Username:         "",
-			ReceivePublicKey: "",
-			SendPublicKey:    ""}
+			Userid:        uint64(userid),
+			Username:      "",
+			PublicKey:     "",
+			PublicKeyHash: "",
+		}
 
 		database.DB.Create(&newUser)
 		return c.JSON(response.GetMe{
-			Username:         newUser.Username,
-			Userid:           uint64(userid),
-			ReceivePublicKey: newUser.ReceivePublicKey,
-			SendPublicKey:    newUser.SendPublicKey,
+			Username:      newUser.Username,
+			Userid:        uint64(userid),
+			PublicKey:     newUser.PublicKey,
+			PublicKeyHash: newUser.PublicKeyHash,
 		})
 	}
 
 	return c.JSON(response.GetMe{
-		Username:         result.Username,
-		Userid:           result.Userid,
-		ReceivePublicKey: result.ReceivePublicKey,
-		SendPublicKey:    result.SendPublicKey,
+		Username:      result.Username,
+		Userid:        result.Userid,
+		PublicKey:     result.PublicKey,
+		PublicKeyHash: result.PublicKeyHash,
 	})
 }
 
@@ -95,13 +97,13 @@ func SetUsername(c *fiber.Ctx) error {
 
 func SetPublicKey(c *fiber.Ctx) error {
 	userid := c.Locals("userid").(int64)
-	var body request.SetPublicKey
 
+	var body request.SetPublicKey
 	if err := c.BodyParser(&body); err != nil {
 		return err
 	}
 
-	if body.ReceivePublicKey == "" || body.SendPublicKey == "" {
+	if body.PublicKey == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{
 			Message: "Public key fields are empty",
 		})
@@ -111,13 +113,12 @@ func SetPublicKey(c *fiber.Ctx) error {
 	database.DB.
 		Model(&result).
 		Where("userid = ?", userid).
-		Update("receive_public_key", body.ReceivePublicKey).
-		Update("send_public_key", body.SendPublicKey)
+		Update("public_key", body.PublicKey).
+		Update("public_key_hash", utils.GenerateSHA256(body.PublicKey))
 
 	return c.JSON(response.SetPublicKey{
-		ReceivePublicKey: body.ReceivePublicKey,
-		SendPublicKey:    body.SendPublicKey,
-		Message:          "Public key set successfully",
+		PublicKey: body.PublicKey,
+		Message:   "Public key set successfully",
 	})
 }
 
@@ -144,7 +145,7 @@ func GetProfile(c *fiber.Ctx) error {
 	return c.JSON(response.GetProfile{
 		ID:        result.ID,
 		Username:  result.Username,
-		PublicKey: result.ReceivePublicKey,
+		PublicKey: result.PublicKey,
 	})
 }
 
@@ -157,9 +158,7 @@ func SendMessage(c *fiber.Ctx) error {
 		return err
 	}
 
-	matched, _ := regexp.MatchString("^[0-9]*$", fmt.Sprintf("%v", body.Id))
-
-	if !matched || len(body.Message) == 0 {
+	if len(body.Message) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(response.Error{Message: "Bad Request"})
 	}
 
@@ -173,12 +172,19 @@ func SendMessage(c *fiber.Ctx) error {
 	var sourceUser database.User
 	database.DB.Where("userid = ?", userid).Find(&sourceUser)
 
+	var session = database.Session{
+		Key:  body.SessionKey,
+		Time: time.Now()}
+
+	database.DB.Create(&session)
+
 	database.DB.Create(&database.Message{
-		Content: body.Message,
-		FromID:  sourceUser.ID,
-		ToID:    body.Id,
-		OwnerID: body.Id,
-		Time:    time.Now()})
+		Content:   body.Message,
+		FromID:    sourceUser.ID,
+		SessionID: session.ID,
+		ToID:      targetUser.ID,
+		OwnerID:   targetUser.ID,
+		Time:      time.Now()})
 
 	// push notification from telegram bot to user account
 	err := redis.Client.Publish("message", fmt.Sprint(targetUser.Userid))
@@ -199,10 +205,10 @@ func GetPublicKey(c *fiber.Ctx) error {
 	database.DB.Where("id = ?", result.FromID).Find(&res)
 
 	if result.OwnerID == result.FromID {
-		return c.JSON(res.ReceivePublicKey)
+		return c.JSON(res.PublicKey)
 	}
 
-	return c.JSON(res.SendPublicKey)
+	return c.JSON(res.PublicKey)
 }
 
 func ReplayMessage(c *fiber.Ctx) error {
@@ -262,12 +268,11 @@ func GetMessages(c *fiber.Ctx) error {
 			database.DB.Where("id = ?", res.ToID).Find(&quotedUser)
 			if owner {
 				messages = append(messages, response.GetMessages{
-					ID:              result[i].ID,
-					Content:         result[i].Content,
-					Time:            result[i].Time,
-					Owner:           owner, // true
-					CanReplay:       true,
-					SenderPublicKey: sourceUser.SendPublicKey,
+					ID:        result[i].ID,
+					Content:   result[i].Content,
+					Time:      result[i].Time,
+					Owner:     owner, // true
+					CanReplay: true,
 					Quote: &response.Quote{
 						ID:      res.ID,
 						Content: res.Content,
@@ -275,12 +280,12 @@ func GetMessages(c *fiber.Ctx) error {
 				})
 			} else {
 				messages = append(messages, response.GetMessages{
-					ID:              result[i].ID,
-					Content:         result[i].Content,
-					Time:            result[i].Time,
-					Owner:           owner, // false
-					CanReplay:       true,
-					SenderPublicKey: sourceUser.ReceivePublicKey,
+					ID:        result[i].ID,
+					Content:   result[i].Content,
+					Time:      result[i].Time,
+					SessionID: result[i].SessionID,
+					Owner:     owner, // false
+					CanReplay: true,
 					Quote: &response.Quote{
 						ID:      res.ID,
 						Content: res.Content,
@@ -288,15 +293,20 @@ func GetMessages(c *fiber.Ctx) error {
 				})
 			}
 		} else {
+			var session database.Session
+			database.DB.Where("id = ?", result[i].SessionID).Find(&session)
+
 			messages = append(messages, response.GetMessages{
-				ID:              result[i].ID,
-				Time:            result[i].Time,
-				Owner:           owner,
-				Quote:           nil,
-				Content:         result[i].Content,
-				CanReplay:       true,
-				SenderPublicKey: sourceUser.SendPublicKey,
+				ID:        result[i].ID,
+				SessionID: result[i].SessionID,
+				Time:      result[i].Time,
+				Owner:     owner,
+				Quote:     nil,
+				Content:   result[i].Content,
+				CanReplay: true,
 			})
+
+			database.DB.Delete(&database.Session{}, result[i].SessionID)
 		}
 
 	}

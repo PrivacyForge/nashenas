@@ -22,7 +22,7 @@ const middleware: NavigationGuard = async (to, from, next) => {
         : next({ name: 'setup' })
     })
     .catch((error) => {
-      next({ name: 'error' })
+      // next({ name: 'error' })
     })
 }
 

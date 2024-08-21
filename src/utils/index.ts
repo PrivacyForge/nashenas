@@ -63,4 +63,16 @@ function importKeysFromFile(file: File): Promise<IKeys> {
   })
 }
 
-export { generateKeysTemplate, extractKeys, exportKeys, importKeysFromFile }
+function bufferToHex(buffer: ArrayBuffer) {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+export {
+  generateKeysTemplate,
+  extractKeys,
+  exportKeys,
+  importKeysFromFile,
+  bufferToHex,
+}
