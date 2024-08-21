@@ -5,8 +5,10 @@ import Message from '@/components/Message.vue'
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user';
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore()
+const router = useRouter()
 
 const messages = ref<any[]>([])
 
@@ -25,6 +27,10 @@ axios
     userStore.user.publicKey = data.public_key
 
     userStore.isAuth = true
+  })
+  .catch((error) => {
+    alert(error)
+    router.push({ name: 'error' })
   })
 </script>
 
