@@ -12,8 +12,7 @@ const middleware: NavigationGuard = async (to, from, next) => {
       userStore.user.id = data.id
       userStore.user.userid = data.userid
       userStore.user.username = data.username
-      userStore.user.receivePublicKey = data.receive_public_key
-      userStore.user.sendPublicKey = data.send_public_key
+      userStore.user.publicKey = data.public_key
 
       userStore.isAuth = true
 
