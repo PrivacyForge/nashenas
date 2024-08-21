@@ -10,16 +10,16 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-const encoder = new TextEncoder();
-const data = encoder.encode(userStore.user.publicKey);
+// const encoder = new TextEncoder();
+// const data = encoder.encode(userStore.user.publicKey);
 
-const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-const hash = bufferToHex(hashBuffer)
+// const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+// const hash = bufferToHex(hashBuffer)
 
 alert("layout")
 
 const myLink = computed(() => {
-  return `https://t.me/${import.meta.env.BOT_ID}?start=${userStore.user.username}-${hash}`
+  return `https://t.me/${import.meta.env.BOT_ID}?start=${userStore.user.username}-hash`
 })
 onMounted(() => {
   window.Telegram.WebApp.expand()

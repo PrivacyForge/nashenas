@@ -9,7 +9,7 @@ const middleware: NavigationGuard = async (to, from, next) => {
   await axios
     .get('/me')
     .then(({ data }) => {
-      console.log(data.public_key)
+      console.log("middleware", data.public_key)
 
       userStore.user.id = data.id
       userStore.user.userid = data.userid
