@@ -19,7 +19,7 @@ const userStore = useUserStore()
 alert("layout")
 
 const myLink = computed(() => {
-  return `https://t.me/${import.meta.env.BOT_ID}?start=${userStore.user.username}-hash`
+  return `https://t.me/Nashenase2ebot?start=${userStore.user.username}-hash`
 })
 onMounted(() => {
   window.Telegram.WebApp.expand()
