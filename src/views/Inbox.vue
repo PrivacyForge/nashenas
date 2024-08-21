@@ -17,7 +17,7 @@ axios.get('/get-messages').then((response) => {
 
   messages.value.reverse()
 })
-
+alert("text")
 axios
   .get('/me')
   .then(({ data }) => {
