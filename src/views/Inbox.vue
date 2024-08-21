@@ -13,11 +13,13 @@ const router = useRouter()
 const messages = ref<any[]>([])
 
 axios.get('/get-messages').then((response) => {
-  messages.value = response.data
+  messages.value = []
 
   messages.value.reverse()
 })
+
 alert("text")
+
 axios
   .get('/me')
   .then(({ data }) => {
