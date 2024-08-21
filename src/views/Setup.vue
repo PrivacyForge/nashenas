@@ -37,6 +37,7 @@ async function generateKeyPairs() {
           public_key: publicKey,
         })
         .then(({ data }) => {
+          alert(data)
           state.value = 'key-generation'
           userStore.user.publicKey = data.public_key
         })
