@@ -54,6 +54,6 @@ type GetMessages struct {
 	Time            time.Time `json:"time"`
 	Owner           bool      `json:"owner"`
 	Quote           *Quote    `json:"quote,omitempty"`
-	CanReplay       bool      `json:"can_replay"`
+	CanReply        bool      `json:"can_reply"`
 	SenderPublicKey string    `json:"sender_public_key"`
 }
