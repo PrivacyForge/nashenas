@@ -19,7 +19,7 @@ async function copy() {
 
     const hashBuffer = await crypto.subtle.digest("SHA-1", data);
     const hash = bufferToHex(hashBuffer)
-    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${hash}`)
+    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${userStore.user}-${hash}`)
   } catch (error) {
     alert(error)
   }
