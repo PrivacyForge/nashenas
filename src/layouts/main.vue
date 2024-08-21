@@ -2,11 +2,11 @@
 import { computed, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 
-import { useUserStore } from '@/stores/user'
-
 import Settings from '@/components/Settings.vue'
 import CopyText from '@/components/UI/CopyText.vue'
+
 import { bufferToHex } from '@/utils'
+import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
@@ -15,6 +15,8 @@ const data = encoder.encode(userStore.user.publicKey);
 
 const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 const hash = bufferToHex(hashBuffer)
+
+alert("layout")
 
 const myLink = computed(() => {
   return `https://t.me/${import.meta.env.BOT_ID}?start=${userStore.user.username}-${hash}`
