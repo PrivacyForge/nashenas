@@ -3,7 +3,6 @@ import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
 
 const middleware: NavigationGuard = async (to, from, next) => {
-  alert('middle')
   const userStore = useUserStore()
   if (userStore.isAuth) return next()
 
