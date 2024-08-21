@@ -14,7 +14,7 @@ type SendMessage struct {
 	Message string `json:"message"`
 }
 
-type ReplayMessage struct {
+type ReplyMessage struct {
 	MessageId uint64 `json:"message_id"`
 	Message   string `json:"message"`
 }

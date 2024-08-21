@@ -14,7 +14,7 @@ const props = defineProps<{
   time: string
   owner: boolean
   mark: boolean
-  canReplay: boolean
+  canReply: boolean
   sender_public_key: string
   quote?: {
     id: number
@@ -22,9 +22,9 @@ const props = defineProps<{
   }
 }>()
 
-const replaying = ref(false)
-const replayMessage = ref('')
-const replaySent = ref(false)
+const replying = ref(false)
+const replyMessage = ref('')
+const replySent = ref(false)
 
 const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
@@ -69,7 +69,7 @@ const vFocus = {
 }
 
 function Submit() {
-  if (!replayMessage.value) return
+  if (!replyMessage.value) return
 
   axios.get(`/get-key/${props.id}`).then(async ({ data: key }) => {
     window.Telegram.WebApp.CloudStorage.getItem(
@@ -78,19 +78,19 @@ function Submit() {
         const encryptedMsg = await createE2EPacket(
           key,
           privateKey!,
-          replayMessage.value,
+          replyMessage.value,
         )
         axios
-          .post('/replay-message', {
+          .post('/reply-message', {
             message_id: props.id,
             message: encryptedMsg,
           })
           .then(() => {
-            replaying.value = false
-            replayMessage.value = ''
-            replaySent.value = true
+            replying.value = false
+            replyMessage.value = ''
+            replySent.value = true
 
-            setTimeout(() => (replaySent.value = false), 1500)
+            setTimeout(() => (replySent.value = false), 1500)
           })
       },
     )
@@ -115,9 +115,9 @@ function Submit() {
 
     <p class="break-words py-2" dir="auto" v-decrypt>{{ text }}</p>
 
-    <template v-if="canReplay">
-      <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
-        <div class="flex items-center cursor-pointer" @click="replaying = true">
+    <template v-if="canReply">
+      <div v-if="!replying" class="flex justify-end text-gray-400 text-end">
+        <div class="flex items-center cursor-pointer" @click="replying = true">
           <span class="ml-1 text-sm">پاسخ</span>
           <ReplyIcon size="20" color="#9CA38F" />
         </div>
@@ -125,19 +125,19 @@ function Submit() {
 
       <div v-else class="flex flex-col mt-4">
         <Textarea
-          v-model="replayMessage"
+          v-model="replyMessage"
           placeholder="پاسخ شما..."
           v-focus
         ></Textarea>
         <Button :block="true" class="mt-4" @click="Submit">ارسال</Button>
         <p
           class="text-center pt-4 text-[#119af5] font-bold cursor-pointer"
-          @click="replaying = false"
+          @click="replying = false"
         >
           بیخیال
         </p>
       </div>
-      <p v-if="replaySent" class="text-center text-[#119af5]">
+      <p v-if="replySent" class="text-center text-[#119af5]">
         پاسخ شما ارسال شد.
       </p>
     </template>

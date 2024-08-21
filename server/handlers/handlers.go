@@ -205,10 +205,10 @@ func GetPublicKey(c *fiber.Ctx) error {
 	return c.JSON(res.SendPublicKey)
 }
 
-func ReplayMessage(c *fiber.Ctx) error {
+func ReplyMessage(c *fiber.Ctx) error {
 	userid := c.Locals("userid")
 
-	var body request.ReplayMessage
+	var body request.ReplyMessage
 
 	if err := c.BodyParser(&body); err != nil {
 		return err
@@ -266,7 +266,7 @@ func GetMessages(c *fiber.Ctx) error {
 					Content:         result[i].Content,
 					Time:            result[i].Time,
 					Owner:           owner, // true
-					CanReplay:       true,
+					CanReply:        true,
 					SenderPublicKey: sourceUser.SendPublicKey,
 					Quote: &response.Quote{
 						ID:      res.ID,
@@ -279,7 +279,7 @@ func GetMessages(c *fiber.Ctx) error {
 					Content:         result[i].Content,
 					Time:            result[i].Time,
 					Owner:           owner, // false
-					CanReplay:       true,
+					CanReply:        true,
 					SenderPublicKey: sourceUser.ReceivePublicKey,
 					Quote: &response.Quote{
 						ID:      res.ID,
@@ -294,7 +294,7 @@ func GetMessages(c *fiber.Ctx) error {
 				Owner:           owner,
 				Quote:           nil,
 				Content:         result[i].Content,
-				CanReplay:       true,
+				CanReply:        true,
 				SenderPublicKey: sourceUser.SendPublicKey,
 			})
 		}
