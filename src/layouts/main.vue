@@ -17,9 +17,9 @@ async function copy() {
     const encoder = new TextEncoder();
     const data = encoder.encode(userStore.user.publicKey);
 
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", data);
     const hash = bufferToHex(hashBuffer)
-    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${userStore.user.username}-${hash}`)
+    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${hash}`)
   } catch (error) {
     alert(error)
   }

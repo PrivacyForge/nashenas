@@ -29,7 +29,7 @@ const router = createRouter({
       beforeEnter: AuthMiddleware,
     },
     {
-      path: "/@:usernameWithHash",
+      path: "/:hash",
       name: "profile",
       component: () => import("@/views/Profile.vue"),
     },

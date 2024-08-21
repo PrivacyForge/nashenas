@@ -72,14 +72,7 @@ async function submit() {
 }
 
 onMounted(async () => {
-  const words = (route.params.usernameWithHash as string).split('-')
-
-  if (words.length != 2) {
-    router.push({ name: "error" })
-  }
-
-  const username = words[0]
-  const hash = words[1]
+  const hash = route.params.hash
 
   loading.value = true
   axios
@@ -91,7 +84,7 @@ onMounted(async () => {
       userStore.user.publicKey = data.public_key
       userStore.isAuth = true
 
-      if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
+      if (!userStore.user.username) router.push({ name: "setup", query: { next: hash } })
 
       axios
         .get(`/profile/${username}`)
