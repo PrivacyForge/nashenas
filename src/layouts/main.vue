@@ -40,7 +40,7 @@ onMounted(() => {
       <div class="cursor-pointer">
         <Settings />
       </div>
-      <button v-if="!delay" class="text-[#119af5] font-semibold text-end" @click="copy">کپی لینک</button>
+      <button v-if="!delay" class="text-[#119af5] font-semibold text-end" @click="copy">کپی پیوند</button>
       <div class="text-center" v-else>کپی شد!</div>
     </nav>
     <hr class="my-1" />
