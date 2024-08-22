@@ -78,7 +78,7 @@ function done() {
   if (route.query.next)
     router.push({
       name: 'profile',
-      params: { hash: route.query.next as string },
+      params: { usernameWithHash: route.query.next as string },
     })
   else {
     alert("push to inbox")
