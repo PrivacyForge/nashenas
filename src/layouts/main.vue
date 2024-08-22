@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
+import MD5 from "crypto-js/md5";
 
 import Settings from '@/components/Settings.vue'
 import CopyText from '@/components/UI/CopyText.vue'
@@ -14,11 +15,8 @@ const delay = ref(false)
 
 async function copy() {
   try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(userStore.user.publicKey);
+    const hash = MD5(userStore.user.publicKey).toString()
 
-    const hashBuffer = await crypto.subtle.digest("SHA-1", data);
-    const hash = bufferToHex(hashBuffer)
     navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${userStore.user.username}-${hash}`)
   } catch (error) {
     alert(error)

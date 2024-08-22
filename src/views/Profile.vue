@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MD5 from "crypto-js/md5";
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
@@ -103,12 +104,9 @@ onMounted(async () => {
           user.publicKey = response.data.public_key
           user.username = response.data.username
 
-          const encoder = new TextEncoder();
-          const data = encoder.encode(user.publicKey!);
+          const publicKeyHash = MD5(response.data.public_key).toString()
 
-          const hashBuffer = await crypto.subtle.digest("SHA-1", data);
-
-          const publicKeyHash = bufferToHex(hashBuffer)
+          console.log(publicKeyHash);
 
           if (publicKeyHash !== hash) {
             router.push({ name: "error" })
