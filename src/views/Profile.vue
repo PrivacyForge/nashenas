@@ -110,9 +110,6 @@ onMounted(async () => {
 
           const publicKeyHash = bufferToHex(hashBuffer)
 
-          alert(hash)
-          alert(publicKeyHash)
-
           if (publicKeyHash !== hash) {
             router.push({ name: "error" })
           }
