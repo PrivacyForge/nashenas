@@ -87,6 +87,10 @@ onMounted(async () => {
   const username = words[0]
   const hash = words[1]
 
+  alert(route.params.usernameWithHash)
+  alert(username)
+  alert(hash)
+
   loading.value = true
   axios
     .get('/me')
