@@ -81,9 +81,9 @@ function Submit() {
 
   alert(replayMessage.value)
 
-  window.Telegram.WebApp.CloudStorage.getItem(String(props.message.session_id), (error, sessionKey) => {
+  window.Telegram.WebApp.CloudStorage.getItem(String(props.message.session_id), async (error, sessionKey) => {
     alert(sessionKey)
-    const encryptedMsg = AES.encrypt(replayMessage.value, sessionKey!)
+    const encryptedMsg = await AES.encrypt(replayMessage.value, sessionKey!)
     axios
       .post('/replay-message', {
         message_id: props.message.id,
