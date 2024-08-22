@@ -37,7 +37,6 @@ async function generateKeyPairs() {
           public_key: publicKey,
         })
         .then(({ data }) => {
-          alert(data.public_key)
           state.value = 'key-generation'
           userStore.user.publicKey = data.public_key
         })
@@ -68,7 +67,6 @@ function usernameSubmit() {
   axios
     .post('/set-username', { username: username.value })
     .then(({ data }) => {
-      alert(data.username)
       state.value = 'key-question'
       userStore.user.username = data.username
     })
@@ -84,7 +82,6 @@ function done() {
       params: { usernameWithHash: route.query.next as string },
     })
   else {
-    alert("push to inbox")
     router.push({ name: 'inbox' })
   }
 }
