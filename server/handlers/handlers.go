@@ -227,12 +227,13 @@ func ReplayMessage(c *fiber.Ctx) error {
 	database.DB.Where("userid = ?", userid).Find(&user)
 
 	database.DB.Create(&database.Message{
-		Content:  body.Message,
-		FromID:   user.ID,
-		ToID:     result.FromID,
-		OwnerID:  result.OwnerID,
-		ParentID: result.ID,
-		Time:     time.Now()})
+		Content:   body.Message,
+		FromID:    user.ID,
+		ToID:      result.FromID,
+		SessionID: result.SessionID,
+		OwnerID:   result.OwnerID,
+		ParentID:  result.ID,
+		Time:      time.Now()})
 
 	var targetUser database.User
 	database.DB.Where("id = ?", result.FromID).Find(&targetUser)
