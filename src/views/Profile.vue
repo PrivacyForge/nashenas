@@ -84,7 +84,7 @@ onMounted(async () => {
 
   if (words.length !== 2) router.push({ name: 'error' })
 
-  const username = words[0]
+  const username = words[0].slice(1)
   const hash = words[1]
 
   alert(route.params.usernameWithHash)
