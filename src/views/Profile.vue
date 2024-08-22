@@ -49,8 +49,12 @@ async function submit() {
   try {
     const sessionKey = generateRandomAESKey()
 
+    alert(sessionKey)
+
     const encryptedMsg = await AES.encrypt(message.value, sessionKey)
+    alert(encryptedMsg)
     const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
+    alert(encryptedKey)
 
     submitLoading.value = true
     setTimeout(() => {
