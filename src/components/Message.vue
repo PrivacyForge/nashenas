@@ -34,12 +34,10 @@ const replaySent = ref(false)
 
 const vDecrypt = {
   mounted: async (el: HTMLParagraphElement) => {
-    alert(`session id: ${props.message.session_id}`)
     try {
       window.Telegram.WebApp.CloudStorage.getItem(
         String(props.message.session_id),
         async (error, sessionKey) => {
-          alert(`session key is: ${sessionKey}`)
           if (!sessionKey) {
             window.Telegram.WebApp.CloudStorage.getItem("private_key", async (error, value) => {
               const decryptedSessionKey = await RSA.decrypt(props.message.session_key!, value!)
