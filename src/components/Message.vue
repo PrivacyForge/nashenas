@@ -41,6 +41,8 @@ const vDecrypt = {
           alert(sessionKey)
           if (!sessionKey) {
             window.Telegram.WebApp.CloudStorage.getItem("private_key", async (error, value) => {
+              alert(props.message.session_key)
+              alert(value)
               const decryptedSessionKey = await RSA.decrypt(props.message.session_key!, value!)
               window.Telegram.WebApp.CloudStorage.setItem(String(props.message.session_id), decryptedSessionKey)
               sessionKey = decryptedSessionKey

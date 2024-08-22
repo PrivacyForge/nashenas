@@ -306,7 +306,7 @@ func GetMessages(c *fiber.Ctx) error {
 				CanReplay: true,
 			})
 
-			database.DB.Delete(&database.Session{}, result[i].SessionID)
+			// database.DB.Delete(&database.Session{}, result[i].SessionID)
 		}
 
 	}
