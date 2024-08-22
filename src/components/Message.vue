@@ -39,7 +39,7 @@ const vDecrypt = {
         String(props.message.session_id),
         async (error, sessionKey) => {
           if (!sessionKey) {
-            alert(`session key in empty: ${sessionKey}`)
+            alert(`session key is empty: ${sessionKey}`)
             window.Telegram.WebApp.CloudStorage.getItem("private_key", async (error, value) => {
               alert("getting private key")
               alert(value)
@@ -47,6 +47,14 @@ const vDecrypt = {
               const decryptedSessionKey = await RSA.decrypt(props.message.session_key!, value!)
               window.Telegram.WebApp.CloudStorage.setItem(String(props.message.session_id), decryptedSessionKey)
               sessionKey = decryptedSessionKey
+
+              try {
+                alert(`content: ${props.message.content}`)
+                const decryptedMsg = await AES.decrypt(props.message.content, sessionKey!)
+                el.innerText = decryptedMsg!
+              } catch (error) {
+                alert(`AES error: ${error}`)
+              }
             })
           }
 
