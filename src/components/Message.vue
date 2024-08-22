@@ -48,8 +48,9 @@ const vDecrypt = {
               sessionKey = decryptedSessionKey
             })
           }
-
+          alert(props.message.text)
           const decryptedMsg = await AES.decrypt(props.message.text, sessionKey!)
+          alert(decryptedMsg)
           el.innerText = decryptedMsg!
         },
       )
