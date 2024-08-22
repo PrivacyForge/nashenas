@@ -43,32 +43,36 @@ const submitLoading = ref(false)
 const sent = ref(false)
 
 async function submit() {
+  alert(message.value)
   if (message.value === '') return
 
-  const sessionKey = generateRandomAESKey()
+  try {
+    const sessionKey = generateRandomAESKey()
 
-  const encryptedMsg = await AES.encrypt(message.value, sessionKey)
-  const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
+    const encryptedMsg = await AES.encrypt(message.value, sessionKey)
+    const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
 
-  submitLoading.value = true
+    submitLoading.value = true
+    setTimeout(() => {
+      axios
+        .post(`/send-message`, {
+          message: encryptedMsg,
+          session_key: encryptedKey,
+          id: user.id!
+        })
+        .then(({ data }) => {
+          message.value = ''
+          sent.value = true
 
-  setTimeout(() => {
-    axios
-      .post(`/send-message`, {
-        message: encryptedMsg,
-        session_key: encryptedKey,
-        id: user.id!
-      })
-      .then(({ data }) => {
-        message.value = ''
-        sent.value = true
-
-        window.Telegram.WebApp.CloudStorage.setItem(data.session_id, sessionKey)
-      })
-      .finally(() => {
-        submitLoading.value = false
-      })
-  }, 2000)
+          window.Telegram.WebApp.CloudStorage.setItem(data.session_id, sessionKey)
+        })
+        .finally(() => {
+          submitLoading.value = false
+        })
+    }, 2000)
+  } catch (error) {
+    alert(error)
+  }
 }
 
 onMounted(async () => {
