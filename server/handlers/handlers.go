@@ -262,6 +262,7 @@ func GetMessages(c *fiber.Ctx) error {
 
 		var sourceUser database.User
 		database.DB.Where("id = ?", result[i].FromID).Find(&sourceUser)
+
 		if result[i].ParentID != 0 {
 			var res database.Message
 			database.DB.Where("id = ?", result[i].ParentID).Find(&res)
@@ -272,6 +273,7 @@ func GetMessages(c *fiber.Ctx) error {
 					ID:        result[i].ID,
 					Content:   result[i].Content,
 					Time:      result[i].Time,
+					SessionID: result[i].SessionID,
 					Owner:     owner, // true
 					CanReplay: true,
 					Quote: &response.Quote{
