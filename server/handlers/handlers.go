@@ -297,13 +297,14 @@ func GetMessages(c *fiber.Ctx) error {
 			database.DB.Where("id = ?", result[i].SessionID).Find(&session)
 
 			messages = append(messages, response.GetMessages{
-				ID:        result[i].ID,
-				SessionID: result[i].SessionID,
-				Time:      result[i].Time,
-				Owner:     owner,
-				Quote:     nil,
-				Content:   result[i].Content,
-				CanReplay: true,
+				ID:         result[i].ID,
+				SessionID:  result[i].SessionID,
+				SessionKey: session.Key,
+				Time:       result[i].Time,
+				Owner:      owner,
+				Quote:      nil,
+				Content:    result[i].Content,
+				CanReplay:  true,
 			})
 
 			// database.DB.Delete(&database.Session{}, result[i].SessionID)
