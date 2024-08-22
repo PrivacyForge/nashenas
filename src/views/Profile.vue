@@ -87,10 +87,6 @@ onMounted(async () => {
   const username = words[0].slice(1)
   const hash = words[1]
 
-  alert(route.params.usernameWithHash)
-  alert(username)
-  alert(hash)
-
   loading.value = true
   axios
     .get('/me')
@@ -109,15 +105,16 @@ onMounted(async () => {
           user.id = response.data.id
           user.publicKey = response.data.public_key
           user.username = response.data.username
-          alert(response.data.public_key)
-          alert(user.publicKey)
 
           const encoder = new TextEncoder();
           const data = encoder.encode(user.publicKey!);
 
-          const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+          const hashBuffer = await crypto.subtle.digest("SHA-1", data);
 
           const publicKeyHash = bufferToHex(hashBuffer)
+
+          alert(hash)
+          alert(publicKeyHash)
 
           if (publicKeyHash !== hash) {
             router.push({ name: "error" })
