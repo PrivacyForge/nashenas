@@ -53,6 +53,7 @@ async function submit() {
 
     const encryptedMsg = await AES.encrypt(message.value, sessionKey)
     alert(encryptedMsg)
+    alert(user.publicKey)
     const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
     alert(encryptedKey)
 
