@@ -61,7 +61,6 @@ const vDecrypt = {
             }
           }
 
-
         },
       )
     } catch (error) {
@@ -80,29 +79,20 @@ const vFocus = {
 function Submit() {
   if (!replayMessage.value) return
 
-  axios.get(`/get-key/${props.message.id}`).then(async ({ data: key }) => {
-    window.Telegram.WebApp.CloudStorage.getItem(
-      props.message.owner ? 'receive_private_key' : 'send_private_key',
-      async (error, privateKey) => {
-        const encryptedMsg = await createE2EPacket(
-          key,
-          privateKey!,
-          replayMessage.value,
-        )
-        axios
-          .post('/replay-message', {
-            message_id: props.message.id,
-            message: encryptedMsg,
-          })
-          .then(() => {
-            replaying.value = false
-            replayMessage.value = ''
-            replaySent.value = true
+  window.Telegram.WebApp.CloudStorage.getItem(String(props.message.session_id), (error, sessionKey) => {
+    const encryptedMsg = AES.encrypt(replayMessage.value, sessionKey!)
+    axios
+      .post('/replay-message', {
+        message_id: props.message.id,
+        message: encryptedMsg,
+      })
+      .then(() => {
+        replaying.value = false
+        replayMessage.value = ''
+        replaySent.value = true
 
-            setTimeout(() => (replaySent.value = false), 1500)
-          })
-      },
-    )
+        setTimeout(() => (replaySent.value = false), 1500)
+      })
   })
 }
 </script>
