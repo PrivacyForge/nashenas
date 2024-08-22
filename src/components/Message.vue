@@ -95,6 +95,8 @@ function Submit() {
         replaySent.value = true
 
         setTimeout(() => (replaySent.value = false), 1500)
+      }).catch((err: any) => {
+        alert(err)
       })
   })
 }
