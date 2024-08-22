@@ -28,13 +28,13 @@ async function generateKeys() {
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
     receivePublicKey = publicKey
-    window.Telegram.WebApp.CloudStorage.setItem("receive_private_key", privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("private_key", privateKey)
 
   })
 
   await generateKeyPair().then(({ privateKey, publicKey }) => {
     sendPublicKey = publicKey
-    window.Telegram.WebApp.CloudStorage.setItem("send_private_key", privateKey)
+    window.Telegram.WebApp.CloudStorage.setItem("private_key", privateKey)
   })
 
   axios
@@ -45,8 +45,8 @@ async function generateKeys() {
     .then(({ data }) => {
       userStore.user.publicKey = data.public_key
 
-      window.Telegram.WebApp.CloudStorage.setItem("send_public_key", data.send_public_key)
-      window.Telegram.WebApp.CloudStorage.setItem("receive_public_key", data.receive_public_key)
+      window.Telegram.WebApp.CloudStorage.setItem("public_key", data.send_public_key)
+      window.Telegram.WebApp.CloudStorage.setItem("public_key", data.receive_public_key)
     })
     .finally(() => {
       loading.value = false
