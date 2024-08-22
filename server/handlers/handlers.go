@@ -114,7 +114,7 @@ func SetPublicKey(c *fiber.Ctx) error {
 		Model(&result).
 		Where("userid = ?", userid).
 		Update("public_key", body.PublicKey).
-		Update("public_key_hash", utils.GenerateSHA1(body.PublicKey))
+		Update("public_key_hash", utils.GenerateMD5(body.PublicKey))
 
 	return c.JSON(response.SetPublicKey{
 		PublicKey: body.PublicKey,

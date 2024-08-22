@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"crypto/sha1"
+	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -76,8 +76,8 @@ func Parse(initData string) (InitData, error) {
 	return d, nil
 }
 
-func GenerateSHA1(input string) string {
-	hash := sha1.New()
+func GenerateMD5(input string) string {
+	hash := md5.New()
 	hash.Write([]byte(input))
 	return hex.EncodeToString(hash.Sum(nil))
 }
