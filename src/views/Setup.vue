@@ -106,7 +106,7 @@ onMounted(() => {
         <p v-if="usernameErr" class="text-red-500 my-2" v-text="usernameErr" />
         <Button @click="usernameSubmit()"> بعدی </Button>
         <p class="mt-5">
-          اگه قصد داری آیدیت ناشناس باشه یه مقدار رندوم رو وارد کن.
+          اگه قصد داری بروزرسانی ناشناس باشه یه مقدار تصادفی رو وارد کن.
         </p>
       </template>
 
