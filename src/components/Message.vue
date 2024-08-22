@@ -48,10 +48,13 @@ const vDecrypt = {
               sessionKey = decryptedSessionKey
             })
           }
-          alert(props.message.content)
-          const decryptedMsg = await AES.decrypt(props.message.content, sessionKey!)
-          alert(decryptedMsg)
-          el.innerText = decryptedMsg!
+          try {
+            alert(props.message.content)
+            const decryptedMsg = await AES.decrypt(props.message.content, sessionKey!)
+            el.innerText = decryptedMsg!
+          } catch (error) {
+            alert(error)
+          }
         },
       )
     } catch (error) {
