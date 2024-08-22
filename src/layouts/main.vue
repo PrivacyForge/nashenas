@@ -17,7 +17,7 @@ async function copy() {
   try {
     const hash = MD5(userStore.user.publicKey).toString()
 
-    navigator.clipboard.writeText(`https://t.me/Nashenase2ebot?start=${userStore.user.username}-${hash}`)
+    navigator.clipboard.writeText(`https://t.me/E2EChatbot?start=${userStore.user.username}-${hash}`)
   } catch (error) {
     alert(error)
   }
