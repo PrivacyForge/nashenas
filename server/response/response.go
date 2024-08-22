@@ -32,8 +32,7 @@ type GetProfile struct {
 }
 
 type SendMessage struct {
-	Message   string `json:"message"`
-	SessionID uint64 `json:"session_id"`
+	Message string `json:"message"`
 }
 
 type GetMe struct {

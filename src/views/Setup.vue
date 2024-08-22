@@ -61,9 +61,6 @@ function exportHandler() {
 }
 
 function usernameSubmit() {
-  window.Telegram.WebApp.CloudStorage.getKeys((_, result) => {
-    window.Telegram.WebApp.CloudStorage.removeItems(result ?? [])
-  })
   axios
     .post('/set-username', { username: username.value })
     .then(({ data }) => {
@@ -79,11 +76,9 @@ function done() {
   if (route.query.next)
     router.push({
       name: 'profile',
-      params: { usernameWithHash: route.query.next as string },
+      params: { username: route.query.next as string },
     })
-  else {
-    router.push({ name: 'inbox' })
-  }
+  else router.push({ name: 'inbox' })
 }
 
 onMounted(() => {

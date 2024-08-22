@@ -20,20 +20,16 @@ export const handleCommands = () => {
       web_app: { url: WEB_APP_URL },
       type: 'web_app',
     })
-
     const query = ctx.update.message.text.split(' ')
     if (query.length === 2) {
-      const usernameWithHash = query[1].split('-')
-      if (usernameWithHash.length === 2) {
-        return ctx.reply(
-          `الان داری به کاربر ${usernameWithHash[0]} پیام می‌فرستی`,
-          Markup.inlineKeyboard([
-            Markup.button.webApp('ورود به ربات', `${WEB_APP_URL}/@${query[1]}`),
-          ]),
-        )
-      }
+      const username = query[1]
+      return ctx.reply(
+        `الان داری به کاربر ${username} پیام می‌فرستی`,
+        Markup.inlineKeyboard([
+          Markup.button.webApp('ورود به ربات', `${WEB_APP_URL}/@${username}`),
+        ]),
+      )
     }
-
     ctx.reply(
       START_MESSAGE,
       Markup.inlineKeyboard([

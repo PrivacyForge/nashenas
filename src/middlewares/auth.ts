@@ -9,20 +9,20 @@ const middleware: NavigationGuard = async (to, from, next) => {
   await axios
     .get('/me')
     .then(({ data }) => {
-      console.log("middleware", data.public_key)
-
       userStore.user.id = data.id
       userStore.user.userid = data.userid
       userStore.user.username = data.username
-      userStore.user.publicKey = data.public_key
+      userStore.user.receivePublicKey = data.receive_public_key
+      userStore.user.sendPublicKey = data.send_public_key
 
       userStore.isAuth = true
 
-      data.public_key ? next() : next({ name: 'setup' })
+      data.receive_public_key && data.send_public_key
+        ? next()
+        : next({ name: 'setup' })
     })
     .catch((error) => {
-      alert(error)
-      next({ name: 'error' })
+      // next({ name: 'error' })
     })
 }
 

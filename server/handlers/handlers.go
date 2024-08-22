@@ -114,7 +114,7 @@ func SetPublicKey(c *fiber.Ctx) error {
 		Model(&result).
 		Where("userid = ?", userid).
 		Update("public_key", body.PublicKey).
-		Update("public_key_hash", utils.GenerateMD5(body.PublicKey))
+		Update("public_key_hash", utils.GenerateSHA256(body.PublicKey))
 
 	return c.JSON(response.SetPublicKey{
 		PublicKey: body.PublicKey,
@@ -192,7 +192,7 @@ func SendMessage(c *fiber.Ctx) error {
 		log.Fatalf("Failed to publish message: %v", err)
 	}
 
-	return c.JSON(response.SendMessage{Message: "The message was sent", SessionID: session.ID})
+	return c.JSON(response.SendMessage{Message: "The message was sent"})
 }
 
 func GetPublicKey(c *fiber.Ctx) error {
@@ -227,13 +227,12 @@ func ReplayMessage(c *fiber.Ctx) error {
 	database.DB.Where("userid = ?", userid).Find(&user)
 
 	database.DB.Create(&database.Message{
-		Content:   body.Message,
-		FromID:    user.ID,
-		ToID:      result.FromID,
-		SessionID: result.SessionID,
-		OwnerID:   result.OwnerID,
-		ParentID:  result.ID,
-		Time:      time.Now()})
+		Content:  body.Message,
+		FromID:   user.ID,
+		ToID:     result.FromID,
+		OwnerID:  result.OwnerID,
+		ParentID: result.ID,
+		Time:     time.Now()})
 
 	var targetUser database.User
 	database.DB.Where("id = ?", result.FromID).Find(&targetUser)
@@ -262,7 +261,6 @@ func GetMessages(c *fiber.Ctx) error {
 
 		var sourceUser database.User
 		database.DB.Where("id = ?", result[i].FromID).Find(&sourceUser)
-
 		if result[i].ParentID != 0 {
 			var res database.Message
 			database.DB.Where("id = ?", result[i].ParentID).Find(&res)
@@ -273,7 +271,6 @@ func GetMessages(c *fiber.Ctx) error {
 					ID:        result[i].ID,
 					Content:   result[i].Content,
 					Time:      result[i].Time,
-					SessionID: result[i].SessionID,
 					Owner:     owner, // true
 					CanReplay: true,
 					Quote: &response.Quote{
@@ -300,17 +297,16 @@ func GetMessages(c *fiber.Ctx) error {
 			database.DB.Where("id = ?", result[i].SessionID).Find(&session)
 
 			messages = append(messages, response.GetMessages{
-				ID:         result[i].ID,
-				SessionID:  result[i].SessionID,
-				SessionKey: session.Key,
-				Time:       result[i].Time,
-				Owner:      owner,
-				Quote:      nil,
-				Content:    result[i].Content,
-				CanReplay:  true,
+				ID:        result[i].ID,
+				SessionID: result[i].SessionID,
+				Time:      result[i].Time,
+				Owner:     owner,
+				Quote:     nil,
+				Content:   result[i].Content,
+				CanReplay: true,
 			})
 
-			// database.DB.Delete(&database.Session{}, result[i].SessionID)
+			database.DB.Delete(&database.Session{}, result[i].SessionID)
 		}
 
 	}
