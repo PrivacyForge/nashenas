@@ -13,7 +13,7 @@ import Textarea from '@/components/UI/Textarea.vue'
 const props = defineProps<{
   message: {
     id: number
-    text: string
+    content: string
     time: string
     owner: boolean
     mark: boolean
@@ -48,8 +48,8 @@ const vDecrypt = {
               sessionKey = decryptedSessionKey
             })
           }
-          alert(props.message.text)
-          const decryptedMsg = await AES.decrypt(props.message.text, sessionKey!)
+          alert(props.message.content)
+          const decryptedMsg = await AES.decrypt(props.message.content, sessionKey!)
           alert(decryptedMsg)
           el.innerText = decryptedMsg!
         },
@@ -104,7 +104,7 @@ function Submit() {
       {{ message.quote.content }}
     </p>
 
-    <p class="break-words py-2" dir="auto" v-decrypt>{{ message.text }}</p>
+    <p class="break-words py-2" dir="auto" v-decrypt>{{ message.content }}</p>
 
     <template v-if="message.canReplay">
       <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
