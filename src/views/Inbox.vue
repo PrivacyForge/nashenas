@@ -37,6 +37,7 @@ axios
 <template>
   <div class="grid grid-cols-1 gap-y-3 my-4">
     <template v-if="messages?.length">
+      {{ messages }}
       <Message v-for="(message, i) in messages" :key="i" :message="message" />
     </template>
     <p class="text-center text-gray-400" v-else>
