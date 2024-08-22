@@ -44,7 +44,7 @@ const vDecrypt = {
               window.Telegram.WebApp.CloudStorage.setItem(String(props.message.session_id), decryptedSessionKey)
 
               try {
-                const decryptedMsg = await AES.decrypt(props.message.content, decryptedSessionKey!)
+                const decryptedMsg = await AES.decrypt(el.innerText, decryptedSessionKey!)
                 el.innerText = decryptedMsg!
               } catch (error) {
                 alert(error)
@@ -53,7 +53,7 @@ const vDecrypt = {
             })
           } else {
             try {
-              const decryptedMsg = await AES.decrypt(props.message.content, sessionKey!)
+              const decryptedMsg = await AES.decrypt(el.innerText, sessionKey!)
               el.innerText = decryptedMsg!
             } catch (error) {
               alert(error)
