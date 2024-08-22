@@ -32,7 +32,6 @@ const user = reactive<{
 })
 
 const message = ref('')
-const username = route.params.username
 
 const loading = ref(true)
 const notFoundUser = ref<boolean>()
@@ -81,7 +80,12 @@ async function submit() {
 }
 
 onMounted(async () => {
-  const hash = route.params.hash
+  const words = (route.params.usernameWithHash as string).split("-")
+
+  if (words.length !== 2) router.push({ name: 'error' })
+
+  const username = words[0]
+  const hash = words[1]
 
   loading.value = true
   axios
@@ -114,6 +118,9 @@ onMounted(async () => {
           if (publicKeyHash !== hash) {
             router.push({ name: "error" })
           }
+        })
+        .catch((err: any) => {
+          alert(err)
         })
         .finally(() => {
           loading.value = false
