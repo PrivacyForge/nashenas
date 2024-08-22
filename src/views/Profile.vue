@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import MD5 from "crypto-js/md5";
 
 import axios from '@/plugins/axios'
 import { useUserStore } from '@/stores/user'
@@ -32,7 +33,6 @@ const user = reactive<{
 })
 
 const message = ref('')
-const username = route.params.username
 
 const loading = ref(true)
 const notFoundUser = ref<boolean>()
@@ -45,38 +45,44 @@ const sent = ref(false)
 async function submit() {
   if (message.value === '') return
 
-  const sessionKey = generateRandomAESKey()
+  try {
+    const sessionKey = generateRandomAESKey()
 
-  const encryptedMsg = await AES.encrypt(message.value, sessionKey)
-  const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
+    const encryptedMsg = await AES.encrypt(message.value, sessionKey)
+    const encryptedKey = await RSA.encrypt(sessionKey, user.publicKey!)
 
-  submitLoading.value = true
+    submitLoading.value = true
+    setTimeout(() => {
+      axios
+        .post(`/send-message`, {
+          id: user.id!,
+          message: encryptedMsg,
+          session_key: encryptedKey,
+        })
+        .then(({ data }) => {
+          message.value = ''
+          sent.value = true
 
-  setTimeout(() => {
-    axios
-      .post(`/send-message`, {
-        message: encryptedMsg,
-        session_key: encryptedKey,
-        id: user.id!
-      })
-      .then(() => {
-        message.value = ''
-        sent.value = true
-      })
-      .finally(() => {
-        submitLoading.value = false
-      })
-  }, 2000)
+          window.Telegram.WebApp.CloudStorage.setItem(data.session_id, sessionKey)
+        })
+        .catch((err: any) => {
+          alert(err)
+        })
+        .finally(() => {
+          submitLoading.value = false
+        })
+    }, 2000)
+  } catch (error) {
+    alert(error)
+  }
 }
 
 onMounted(async () => {
-  const words = (route.params.usernameWithHash as string).split('-')
+  const words = (route.params.usernameWithHash as string).split("-")
 
-  if (words.length != 2) {
-    router.push({ name: "error" })
-  }
+  if (words.length !== 2) router.push({ name: 'error' })
 
-  const username = words[0]
+  const username = words[0].slice(1)
   const hash = words[1]
 
   loading.value = true
@@ -89,7 +95,7 @@ onMounted(async () => {
       userStore.user.publicKey = data.public_key
       userStore.isAuth = true
 
-      if (!userStore.user.username) router.push({ name: "setup", query: { next: username } })
+      if (!userStore.user.username) router.push({ name: "setup", query: { next: route.params.usernameWithHash } })
 
       axios
         .get(`/profile/${username}`)
@@ -98,16 +104,16 @@ onMounted(async () => {
           user.publicKey = response.data.public_key
           user.username = response.data.username
 
-          const encoder = new TextEncoder();
-          const data = encoder.encode(user.publicKey!);
+          const publicKeyHash = MD5(response.data.public_key).toString()
 
-          const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-          const publicKeyHash = bufferToHex(hashBuffer)
+          console.log(publicKeyHash);
 
           if (publicKeyHash !== hash) {
             router.push({ name: "error" })
           }
+        })
+        .catch((err: any) => {
+          alert(err)
         })
         .finally(() => {
           loading.value = false

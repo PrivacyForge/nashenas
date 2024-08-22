@@ -28,4 +28,5 @@ func InitConnection() error {
 func migration() {
 	DB.AutoMigrate(&User{})
 	DB.AutoMigrate(&Message{})
+	DB.AutoMigrate(&Session{})
 }

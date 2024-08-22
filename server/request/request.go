@@ -9,7 +9,7 @@ type SetPublicKey struct {
 }
 
 type SendMessage struct {
-	Id         string `json:"id"`
+	Id         uint64 `json:"id"`
 	Message    string `json:"message"`
 	SessionKey string `json:"session_key"`
 }
