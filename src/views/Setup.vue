@@ -61,9 +61,6 @@ function exportHandler() {
 }
 
 function usernameSubmit() {
-  window.Telegram.WebApp.CloudStorage.getKeys((_, result) => {
-    window.Telegram.WebApp.CloudStorage.removeItems(result ?? [])
-  })
   axios
     .post('/set-username', { username: username.value })
     .then(({ data }) => {

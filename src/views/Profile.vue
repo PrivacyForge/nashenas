@@ -95,7 +95,7 @@ onMounted(async () => {
       userStore.user.publicKey = data.public_key
       userStore.isAuth = true
 
-      if (!userStore.user.username) router.push({ name: "setup", query: { next: route.params.usernameWithHash } })
+      if (!userStore.user.publicKey) router.push({ name: "setup", query: { next: route.params.usernameWithHash } })
 
       axios
         .get(`/profile/${username}`)
