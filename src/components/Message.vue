@@ -17,7 +17,7 @@ const props = defineProps<{
     time: string
     owner: boolean
     mark: boolean
-    canReplay: boolean
+    can_replay: boolean
     session_id: number
     session_key?: string
     sender_public_key: string
@@ -106,7 +106,7 @@ function Submit() {
 
     <p class="break-words py-2" dir="auto" v-decrypt>{{ message.content }}</p>
 
-    <template v-if="message.canReplay">
+    <template v-if="message.can_replay">
       <div v-if="!replaying" class="flex justify-end text-gray-400 text-end">
         <div class="flex items-center cursor-pointer" @click="replaying = true">
           <span class="ml-1 text-sm">پاسخ</span>
