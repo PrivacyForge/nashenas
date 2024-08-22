@@ -79,7 +79,10 @@ const vFocus = {
 function Submit() {
   if (!replayMessage.value) return
 
+  alert(replayMessage.value)
+
   window.Telegram.WebApp.CloudStorage.getItem(String(props.message.session_id), (error, sessionKey) => {
+    alert(sessionKey)
     const encryptedMsg = AES.encrypt(replayMessage.value, sessionKey!)
     axios
       .post('/replay-message', {
