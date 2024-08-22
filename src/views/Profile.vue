@@ -101,6 +101,8 @@ onMounted(async () => {
           user.id = response.data.id
           user.publicKey = response.data.public_key
           user.username = response.data.username
+          alert(response.data.public_key)
+          alert(user.publicKey)
 
           const encoder = new TextEncoder();
           const data = encoder.encode(user.publicKey!);
